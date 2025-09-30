@@ -130,6 +130,39 @@ export interface Organization {
   }>;
 }
 
+export interface PersonnelInvolvement {
+  id: string;
+  mainContact: {
+    title: string;
+    gender: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    position: string;
+    department: string;
+    street: string;
+    town: string;
+    postcode: string;
+    country: string;
+    phone: string;
+  };
+  otherContacts: Array<{
+    title: string;
+    gender: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    position: string;
+    department: string;
+    street: string;
+    town: string;
+    postcode: string;
+    country: string;
+    phone: string;
+  }>;
+}
+
+
 const STORAGE_KEYS = {
   proposals: 'phixforge_proposals',
   projects: 'phixforge_projects',
@@ -139,6 +172,7 @@ const STORAGE_KEYS = {
   people: 'phixforge_people',
   organizations: 'phixforge_organizations',
   customProgrammes: 'phixforge_custom_programmes',
+  personnelInvolvement: 'phixforge_personnel_involvement',
 };
 
 export const storage = {
@@ -161,6 +195,7 @@ export const storage = {
       people: storage.get<Person>('people'),
       organizations: storage.get<Organization>('organizations'),
       customProgrammes: storage.get<string>('customProgrammes'),
+      personnelInvolvement: storage.get<PersonnelInvolvement>('personnelInvolvement'),
     };
     return JSON.stringify(allData, null, 2);
   },

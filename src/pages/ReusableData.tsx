@@ -5,6 +5,7 @@ import { PublicationsTab } from '@/components/reusable-data/PublicationsTab';
 import { InfrastructureTab } from '@/components/reusable-data/InfrastructureTab';
 import { PeopleTab } from '@/components/reusable-data/PeopleTab';
 import { OrganizationsTab } from '@/components/reusable-data/OrganizationsTab';
+import { PersonnelInvolvementTab } from '@/components/reusable-data/PersonnelInvolvementTab';
 
 const ReusableData = () => {
   return (
@@ -12,12 +13,13 @@ const ReusableData = () => {
       <h1 className="text-3xl font-bold mb-6">Reusable Data</h1>
 
       <Tabs defaultValue="processes" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="processes">Processes</TabsTrigger>
           <TabsTrigger value="publications">Publications</TabsTrigger>
           <TabsTrigger value="infrastructure">Infrastructure</TabsTrigger>
           <TabsTrigger value="people">People</TabsTrigger>
           <TabsTrigger value="organizations">Organizations</TabsTrigger>
+          <TabsTrigger value="personnel">Personnel Involvement</TabsTrigger>
         </TabsList>
 
         <TabsContent value="processes">
@@ -38,6 +40,10 @@ const ReusableData = () => {
 
         <TabsContent value="organizations">
           <OrganizationsTab />
+        </TabsContent>
+
+        <TabsContent value="personnel">
+          <PersonnelInvolvementTab />
         </TabsContent>
       </Tabs>
     </div>
