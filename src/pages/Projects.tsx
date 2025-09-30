@@ -17,8 +17,8 @@ const Projects = () => {
   const loadGrantedProjects = () => {
     const proposals = storage.get<Proposal>('proposals');
     const granted = proposals.filter(p => p.isGranted);
-    // Sort by budget descending
-    granted.sort((a, b) => b.totalBudget - a.totalBudget);
+    // Sort by PHIX budget descending
+    granted.sort((a, b) => b.phixBudget - a.phixBudget);
     setGrantedProjects(granted);
   };
 
@@ -81,8 +81,8 @@ const Projects = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Budget</p>
-                <p className="text-2xl font-bold">€{filteredProjects.reduce((acc, p) => acc + p.totalBudget, 0).toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Total PHIX Budget</p>
+                <p className="text-2xl font-bold">€{filteredProjects.reduce((acc, p) => acc + p.phixBudget, 0).toLocaleString()}</p>
               </div>
               <Euro className="h-8 w-8 text-primary opacity-60" />
             </div>
@@ -152,11 +152,18 @@ const Projects = () => {
                       {project.programme} • {project.call}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-3xl font-bold text-primary">
-                      €{project.totalBudget.toLocaleString()}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Total Budget</p>
+                  <div className="text-right space-y-1">
+                    <div>
+                      <p className="text-3xl font-bold text-primary">
+                        €{project.phixBudget.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-muted-foreground">PHIX Budget</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Total: €{project.totalBudget.toLocaleString()}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </CardHeader>

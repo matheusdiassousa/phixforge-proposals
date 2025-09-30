@@ -12,6 +12,7 @@ export interface Proposal {
   startMonth?: number;
   startYear?: number;
   totalBudget: number;
+  phixBudget: number;
   projectApplication: string;
   wavelengths: string[];
   picPlatform: string;
@@ -68,10 +69,10 @@ export interface Proposal {
     leadPartner: string;
     involvedPartners: string[];
     phixPersonMonths: number;
+    personMonthRate: number;
+    otherCosts: Array<{ description: string; value: number }>;
+    travelCosts: Array<{ description: string; value: number }>;
   }>;
-  pmCost: number;
-  travelCosts: Array<{ description: string; value: number }>;
-  otherCosts: Array<{ description: string; value: number }>;
 }
 
 export interface Project {
@@ -125,6 +126,7 @@ const STORAGE_KEYS = {
   infrastructure: 'phixforge_infrastructure',
   people: 'phixforge_people',
   organizations: 'phixforge_organizations',
+  customProgrammes: 'phixforge_custom_programmes',
 };
 
 export const storage = {
@@ -146,6 +148,7 @@ export const storage = {
       infrastructure: storage.get<Infrastructure>('infrastructure'),
       people: storage.get<Person>('people'),
       organizations: storage.get<Organization>('organizations'),
+      customProgrammes: storage.get<string>('customProgrammes'),
     };
     return JSON.stringify(allData, null, 2);
   },

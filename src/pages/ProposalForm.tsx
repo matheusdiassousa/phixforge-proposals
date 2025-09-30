@@ -45,9 +45,21 @@ const ProposalForm = () => {
   const [selectedInfrastructure, setSelectedInfrastructure] = useState<string[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [partners, setPartners] = useState<Array<{ name: string; country: string }>>([{ name: '', country: '' }]);
-  const [workPackages, setWorkPackages] = useState<Array<{ number: string; description: string; leadPartner: string; involvedPartners: string[]; phixPersonMonths: number }>>([
-    { number: '', description: '', leadPartner: '', involvedPartners: [], phixPersonMonths: 0 }
+  const [workPackages, setWorkPackages] = useState<Array<{ 
+    number: string; 
+    description: string; 
+    leadPartner: string; 
+    involvedPartners: string[]; 
+    phixPersonMonths: number;
+    personMonthRate: number;
+    otherCosts: Array<{ description: string; value: number }>;
+    travelCosts: Array<{ description: string; value: number }>;
+  }>>([
+    { number: '', description: '', leadPartner: '', involvedPartners: [], phixPersonMonths: 0, personMonthRate: 0, otherCosts: [], travelCosts: [] }
   ]);
+  const [customProgramme, setCustomProgramme] = useState('');
+  const [customProgrammes, setCustomProgrammes] = useState<string[]>([]);
+  const [showCustomProgramme, setShowCustomProgramme] = useState(false);
   
   const [processes, setProcesses] = useState<Process[]>([]);
   const [publications, setPublications] = useState<Publication[]>([]);
@@ -78,6 +90,7 @@ const ProposalForm = () => {
     setPublications(storage.get<Publication>('publications'));
     setInfrastructures(storage.get<Infrastructure>('infrastructure'));
     setProjects(storage.get<Project>('projects'));
+    setCustomProgrammes(storage.get<string>('customProgrammes'));
   }, []);
 
   useEffect(() => {
@@ -112,13 +125,33 @@ const ProposalForm = () => {
     }
   }, [id, form]);
 
+  const calculatePhixBudget = () => {
+    const sum = workPackages.reduce((total, wp) => {
+      const personMonthCost = wp.phixPersonMonths * wp.personMonthRate;
+      const otherCostsTotal = wp.otherCosts.reduce((sum, cost) => sum + cost.value, 0);
+      const travelCostsTotal = wp.travelCosts.reduce((sum, cost) => sum + cost.value, 0);
+      return total + personMonthCost + otherCostsTotal + travelCostsTotal;
+    }, 0);
+    return sum + (sum * 0.25); // Add 25%
+  };
+
   const onSubmit = (data: ProposalFormData) => {
     const proposals = storage.get<Proposal>('proposals');
+    
+    // Handle custom programme
+    let finalProgramme = data.programme;
+    if (data.programme === 'Other' && customProgramme.trim()) {
+      finalProgramme = customProgramme.trim();
+      const existingCustomProgrammes = storage.get<string>('customProgrammes');
+      if (!existingCustomProgrammes.includes(finalProgramme)) {
+        storage.set('customProgrammes', [...existingCustomProgrammes, finalProgramme]);
+      }
+    }
     
     const proposal: Proposal = {
       id: id || crypto.randomUUID(),
       acronym: data.acronym,
-      programme: data.programme,
+      programme: finalProgramme,
       call: data.call,
       type: data.type,
       fundedPercent: data.fundedPercent,
@@ -128,6 +161,7 @@ const ProposalForm = () => {
       startMonth: data.startMonth,
       startYear: data.startYear,
       totalBudget: data.totalBudget,
+      phixBudget: calculatePhixBudget(),
       projectApplication: data.projectApplication || '',
       wavelengths: wavelengths.filter(w => w.trim()),
       picPlatform: data.picPlatform || '',
@@ -153,9 +187,6 @@ const ProposalForm = () => {
       publications: selectedPublications,
       relatedProjects: selectedProjects,
       infrastructure: selectedInfrastructure,
-      pmCost: 0,
-      travelCosts: [],
-      otherCosts: [],
     };
 
     if (id) {
@@ -213,11 +244,58 @@ const ProposalForm = () => {
     setPartners(updated);
   };
 
-  const addWorkPackage = () => setWorkPackages([...workPackages, { number: '', description: '', leadPartner: '', involvedPartners: [], phixPersonMonths: 0 }]);
+  const addWorkPackage = () => setWorkPackages([...workPackages, { 
+    number: '', 
+    description: '', 
+    leadPartner: '', 
+    involvedPartners: [], 
+    phixPersonMonths: 0, 
+    personMonthRate: 0,
+    otherCosts: [],
+    travelCosts: []
+  }]);
+  
   const removeWorkPackage = (index: number) => setWorkPackages(workPackages.filter((_, i) => i !== index));
-  const updateWorkPackage = (index: number, field: 'number' | 'description' | 'leadPartner' | 'phixPersonMonths', value: string | number) => {
+  
+  const updateWorkPackage = (index: number, field: 'number' | 'description' | 'leadPartner' | 'phixPersonMonths' | 'personMonthRate', value: string | number) => {
     const updated = [...workPackages];
     updated[index] = { ...updated[index], [field]: value };
+    setWorkPackages(updated);
+  };
+
+  const addWPOtherCost = (wpIndex: number) => {
+    const updated = [...workPackages];
+    updated[wpIndex].otherCosts.push({ description: '', value: 0 });
+    setWorkPackages(updated);
+  };
+
+  const removeWPOtherCost = (wpIndex: number, costIndex: number) => {
+    const updated = [...workPackages];
+    updated[wpIndex].otherCosts = updated[wpIndex].otherCosts.filter((_, i) => i !== costIndex);
+    setWorkPackages(updated);
+  };
+
+  const updateWPOtherCost = (wpIndex: number, costIndex: number, field: 'description' | 'value', value: string | number) => {
+    const updated = [...workPackages];
+    updated[wpIndex].otherCosts[costIndex] = { ...updated[wpIndex].otherCosts[costIndex], [field]: value };
+    setWorkPackages(updated);
+  };
+
+  const addWPTravelCost = (wpIndex: number) => {
+    const updated = [...workPackages];
+    updated[wpIndex].travelCosts.push({ description: '', value: 0 });
+    setWorkPackages(updated);
+  };
+
+  const removeWPTravelCost = (wpIndex: number, costIndex: number) => {
+    const updated = [...workPackages];
+    updated[wpIndex].travelCosts = updated[wpIndex].travelCosts.filter((_, i) => i !== costIndex);
+    setWorkPackages(updated);
+  };
+
+  const updateWPTravelCost = (wpIndex: number, costIndex: number, field: 'description' | 'value', value: string | number) => {
+    const updated = [...workPackages];
+    updated[wpIndex].travelCosts[costIndex] = { ...updated[wpIndex].travelCosts[costIndex], [field]: value };
     setWorkPackages(updated);
   };
 
@@ -258,7 +336,13 @@ const ProposalForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Programme</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          setShowCustomProgramme(value === 'Other');
+                        }} 
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select programme" />
@@ -269,6 +353,9 @@ const ProposalForm = () => {
                           <SelectItem value="Eurostars">Eurostars</SelectItem>
                           <SelectItem value="Eureka">Eureka</SelectItem>
                           <SelectItem value="National Call">National Call</SelectItem>
+                          {customProgrammes.map((prog) => (
+                            <SelectItem key={prog} value={prog}>{prog}</SelectItem>
+                          ))}
                           <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
@@ -276,6 +363,17 @@ const ProposalForm = () => {
                     </FormItem>
                   )}
                 />
+
+                {showCustomProgramme && (
+                  <div className="col-span-2">
+                    <Label>Custom Programme Name</Label>
+                    <Input
+                      placeholder="Enter programme name"
+                      value={customProgramme}
+                      onChange={(e) => setCustomProgramme(e.target.value)}
+                    />
+                  </div>
+                )}
 
                 <FormField
                   control={form.control}
@@ -638,50 +736,166 @@ const ProposalForm = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Work Packages</CardTitle>
+              <CardTitle>Work Packages & PHIX Budget</CardTitle>
               <Button type="button" variant="outline" size="sm" onClick={addWorkPackage}>
                 <Plus className="h-4 w-4" />
                 Add Work Package
               </Button>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {workPackages.map((wp, index) => (
-                <div key={index} className="space-y-3 p-4 border rounded-lg">
-                  <div className="flex gap-4 items-start">
-                    <Input
-                      placeholder="WP Number"
-                      value={wp.number}
-                      onChange={(e) => updateWorkPackage(index, 'number', e.target.value)}
-                      className="w-32"
-                    />
-                    <Input
-                      placeholder="Lead Partner"
-                      value={wp.leadPartner}
-                      onChange={(e) => updateWorkPackage(index, 'leadPartner', e.target.value)}
-                      className="flex-1"
-                    />
-                    <Input
-                      type="number"
-                      placeholder="Person-Months"
-                      value={wp.phixPersonMonths}
-                      onChange={(e) => updateWorkPackage(index, 'phixPersonMonths', Number(e.target.value))}
-                      className="w-32"
-                      min="0"
-                    />
+            <CardContent className="space-y-6">
+              {workPackages.map((wp, wpIndex) => (
+                <div key={wpIndex} className="space-y-4 p-4 border rounded-lg bg-card">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-semibold">Work Package {wp.number || wpIndex + 1}</h3>
                     {workPackages.length > 1 && (
-                      <Button type="button" variant="ghost" size="icon" onClick={() => removeWorkPackage(index)}>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => removeWorkPackage(wpIndex)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      placeholder="WP Number"
+                      value={wp.number}
+                      onChange={(e) => updateWorkPackage(wpIndex, 'number', e.target.value)}
+                    />
+                    <Input
+                      placeholder="Lead Partner"
+                      value={wp.leadPartner}
+                      onChange={(e) => updateWorkPackage(wpIndex, 'leadPartner', e.target.value)}
+                    />
+                  </div>
+                  
                   <Textarea
                     placeholder="Work package description..."
                     value={wp.description}
-                    onChange={(e) => updateWorkPackage(index, 'description', e.target.value)}
+                    onChange={(e) => updateWorkPackage(wpIndex, 'description', e.target.value)}
                     rows={2}
                   />
+
+                  <Separator />
+                  
+                  <div className="space-y-3">
+                    <Label className="text-sm font-semibold">Person Months</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">Total Person-Months</Label>
+                        <Input
+                          type="number"
+                          placeholder="Person-Months"
+                          value={wp.phixPersonMonths}
+                          onChange={(e) => updateWorkPackage(wpIndex, 'phixPersonMonths', Number(e.target.value))}
+                          min="0"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Rate per Person-Month (€)</Label>
+                        <Input
+                          type="number"
+                          placeholder="Rate"
+                          value={wp.personMonthRate}
+                          onChange={(e) => updateWorkPackage(wpIndex, 'personMonthRate', Number(e.target.value))}
+                          min="0"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Subtotal: €{(wp.phixPersonMonths * wp.personMonthRate).toLocaleString()}
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-sm font-semibold">Other Goods & Services</Label>
+                      <Button type="button" variant="outline" size="sm" onClick={() => addWPOtherCost(wpIndex)}>
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Item
+                      </Button>
+                    </div>
+                    {wp.otherCosts.map((cost, costIndex) => (
+                      <div key={costIndex} className="flex gap-2">
+                        <Input
+                          placeholder="Description"
+                          value={cost.description}
+                          onChange={(e) => updateWPOtherCost(wpIndex, costIndex, 'description', e.target.value)}
+                          className="flex-1"
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Value (€)"
+                          value={cost.value}
+                          onChange={(e) => updateWPOtherCost(wpIndex, costIndex, 'value', Number(e.target.value))}
+                          className="w-32"
+                          min="0"
+                        />
+                        <Button type="button" variant="ghost" size="icon" onClick={() => removeWPOtherCost(wpIndex, costIndex)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-sm font-semibold">Travel & Project Management</Label>
+                      <Button type="button" variant="outline" size="sm" onClick={() => addWPTravelCost(wpIndex)}>
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Item
+                      </Button>
+                    </div>
+                    {wp.travelCosts.map((cost, costIndex) => (
+                      <div key={costIndex} className="flex gap-2">
+                        <Input
+                          placeholder="Description"
+                          value={cost.description}
+                          onChange={(e) => updateWPTravelCost(wpIndex, costIndex, 'description', e.target.value)}
+                          className="flex-1"
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Value (€)"
+                          value={cost.value}
+                          onChange={(e) => updateWPTravelCost(wpIndex, costIndex, 'value', Number(e.target.value))}
+                          className="w-32"
+                          min="0"
+                        />
+                        <Button type="button" variant="ghost" size="icon" onClick={() => removeWPTravelCost(wpIndex, costIndex)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
+              
+              <div className="pt-4 border-t">
+                <div className="text-right space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Direct Costs: €{workPackages.reduce((total, wp) => {
+                      const pmCost = wp.phixPersonMonths * wp.personMonthRate;
+                      const otherTotal = wp.otherCosts.reduce((sum, c) => sum + c.value, 0);
+                      const travelTotal = wp.travelCosts.reduce((sum, c) => sum + c.value, 0);
+                      return total + pmCost + otherTotal + travelTotal;
+                    }, 0).toLocaleString()}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Overhead (25%): €{(workPackages.reduce((total, wp) => {
+                      const pmCost = wp.phixPersonMonths * wp.personMonthRate;
+                      const otherTotal = wp.otherCosts.reduce((sum, c) => sum + c.value, 0);
+                      const travelTotal = wp.travelCosts.reduce((sum, c) => sum + c.value, 0);
+                      return total + pmCost + otherTotal + travelTotal;
+                    }, 0) * 0.25).toLocaleString()}
+                  </p>
+                  <p className="text-lg font-bold">
+                    Total PHIX Budget: €{calculatePhixBudget().toLocaleString()}
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
