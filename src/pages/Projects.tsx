@@ -18,7 +18,7 @@ const Projects = () => {
     const proposals = storage.get<Proposal>('proposals');
     const granted = proposals.filter(p => p.isGranted);
     // Sort by PHIX budget descending
-    granted.sort((a, b) => b.phixBudget - a.phixBudget);
+    granted.sort((a, b) => (b.phixBudget || 0) - (a.phixBudget || 0));
     setGrantedProjects(granted);
   };
 
@@ -82,7 +82,7 @@ const Projects = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total PHIX Budget</p>
-                <p className="text-2xl font-bold">€{filteredProjects.reduce((acc, p) => acc + p.phixBudget, 0).toLocaleString()}</p>
+                <p className="text-2xl font-bold">€{filteredProjects.reduce((acc, p) => acc + (p.phixBudget || 0), 0).toLocaleString()}</p>
               </div>
               <Euro className="h-8 w-8 text-primary opacity-60" />
             </div>
@@ -155,7 +155,7 @@ const Projects = () => {
                   <div className="text-right space-y-1">
                     <div>
                       <p className="text-3xl font-bold text-primary">
-                        €{project.phixBudget.toLocaleString()}
+                        €{(project.phixBudget || 0).toLocaleString()}
                       </p>
                       <p className="text-xs text-muted-foreground">PHIX Budget</p>
                     </div>
