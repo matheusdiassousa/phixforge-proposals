@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { storage, Person } from '@/lib/storage';
 import { Trash2, Edit2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -69,11 +70,22 @@ export const PeopleTab = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
-            <Input
-              placeholder="Title (Dr., Prof., etc.)"
+            <Select
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            />
+              onValueChange={(value) => setFormData({ ...formData, title: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Title" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Dr.">Dr.</SelectItem>
+                <SelectItem value="Prof.">Prof.</SelectItem>
+                <SelectItem value="Mr.">Mr.</SelectItem>
+                <SelectItem value="Mrs.">Mrs.</SelectItem>
+                <SelectItem value="Ms.">Ms.</SelectItem>
+                <SelectItem value="Eng.">Eng.</SelectItem>
+              </SelectContent>
+            </Select>
             <Input
               placeholder="First Name"
               value={formData.firstName}
