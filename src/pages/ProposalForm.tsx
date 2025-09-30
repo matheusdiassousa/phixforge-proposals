@@ -465,77 +465,73 @@ const ProposalForm = () => {
                 />
               </div>
 
-              {id && (
-                <>
-                  <div className="flex items-center gap-2 p-4 bg-muted rounded-md">
-                    <Checkbox checked={isGranted} onCheckedChange={(checked) => setIsGranted(checked as boolean)} id="isGranted" />
-                    <label htmlFor="isGranted" className="text-sm font-medium cursor-pointer">
-                      Mark as Granted (after submission)
-                    </label>
-                  </div>
-
-                  {isGranted && (
-                    <div className="grid grid-cols-3 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="durationMonths"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Duration (months)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                {...field}
-                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="startMonth"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Start Month</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min="1"
-                                max="12"
-                                placeholder="1-12"
-                                {...field}
-                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="startYear"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Start Year</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="2024"
-                                {...field}
-                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="durationMonths"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Duration (months)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </>
+                />
+
+                <FormField
+                  control={form.control}
+                  name="startMonth"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Start Month</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="12"
+                          placeholder="1-12"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="startYear"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Start Year</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="2024"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {id && (
+                <div className="flex items-center gap-2 p-4 bg-muted rounded-md">
+                  <Checkbox checked={isGranted} onCheckedChange={(checked) => setIsGranted(checked as boolean)} id="isGranted" />
+                  <label htmlFor="isGranted" className="text-sm font-medium cursor-pointer">
+                    Mark as Granted (after submission)
+                  </label>
+                </div>
               )}
             </CardContent>
           </Card>
