@@ -1,79 +1,256 @@
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { storage, Project } from '@/lib/storage';
-import { Plus, Search } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { storage, Proposal } from '@/lib/storage';
+import { Search, Calendar, Euro, Waves, Server, TrendingUp, Clock } from 'lucide-react';
 
 const Projects = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [grantedProjects, setGrantedProjects] = useState<Proposal[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    loadProjects();
+    loadGrantedProjects();
   }, []);
 
-  const loadProjects = () => {
-    const data = storage.get<Project>('projects');
-    setProjects(data);
+  const loadGrantedProjects = () => {
+    const proposals = storage.get<Proposal>('proposals');
+    const granted = proposals.filter(p => p.isGranted);
+    // Sort by budget descending
+    granted.sort((a, b) => b.totalBudget - a.totalBudget);
+    setGrantedProjects(granted);
   };
 
-  const filteredProjects = projects.filter(
+  const calculateTimeRemaining = (startMonth: number, startYear: number, durationMonths: number) => {
+    const startDate = new Date(startYear, startMonth - 1);
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + durationMonths);
+    
+    const now = new Date();
+    const totalMs = endDate.getTime() - startDate.getTime();
+    const elapsedMs = now.getTime() - startDate.getTime();
+    const remainingMs = endDate.getTime() - now.getTime();
+    
+    const progress = Math.min(Math.max((elapsedMs / totalMs) * 100, 0), 100);
+    const monthsRemaining = Math.ceil(remainingMs / (1000 * 60 * 60 * 24 * 30));
+    
+    return { progress, monthsRemaining, endDate };
+  };
+
+  const filteredProjects = grantedProjects.filter(
     (p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.call.toLowerCase().includes(searchTerm.toLowerCase())
+      p.acronym?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.call.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.programme.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Granted Projects</h1>
-        <div className="flex gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search projects..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 w-64"
-            />
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Granted Projects Dashboard</h1>
+          <p className="text-muted-foreground">Track running projects, budgets, and timelines</p>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search projects..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 w-64"
+          />
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {filteredProjects.map((project) => (
-          <Card key={project.id}>
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <CardTitle>{project.name}</CardTitle>
-                <Badge variant={project.status === 'Ongoing' ? 'default' : 'secondary'}>
-                  {project.status}
-                </Badge>
+      {/* Summary Stats */}
+      <div className="grid gap-4 md:grid-cols-4 mb-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Projects</p>
+                <p className="text-2xl font-bold">{filteredProjects.length}</p>
               </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-2">{project.call}</p>
-              <p className="text-sm mb-2">{project.shortDescription}</p>
-              {project.website && (
-                <a
-                  href={project.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline"
-                >
-                  Visit Website
-                </a>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+              <TrendingUp className="h-8 w-8 text-primary opacity-60" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Budget</p>
+                <p className="text-2xl font-bold">€{filteredProjects.reduce((acc, p) => acc + p.totalBudget, 0).toLocaleString()}</p>
+              </div>
+              <Euro className="h-8 w-8 text-primary opacity-60" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Active Projects</p>
+                <p className="text-2xl font-bold">
+                  {filteredProjects.filter(p => {
+                    if (!p.startMonth || !p.startYear || !p.durationMonths) return false;
+                    const { monthsRemaining } = calculateTimeRemaining(p.startMonth, p.startYear, p.durationMonths);
+                    return monthsRemaining > 0;
+                  }).length}
+                </p>
+              </div>
+              <Clock className="h-8 w-8 text-primary opacity-60" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Avg. Duration</p>
+                <p className="text-2xl font-bold">
+                  {Math.round(filteredProjects.reduce((acc, p) => acc + (p.durationMonths || 0), 0) / filteredProjects.length || 0)}m
+                </p>
+              </div>
+              <Calendar className="h-8 w-8 text-primary opacity-60" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Projects List */}
+      <div className="space-y-4">
+        {filteredProjects.map((project) => {
+          const timeline = project.startMonth && project.startYear && project.durationMonths
+            ? calculateTimeRemaining(project.startMonth, project.startYear, project.durationMonths)
+            : null;
+
+          return (
+            <Card key={project.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <CardTitle className="text-2xl">{project.acronym}</CardTitle>
+                      <Badge variant="default" className="bg-primary">Granted</Badge>
+                      {timeline && timeline.monthsRemaining > 0 && (
+                        <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-300">
+                          Active
+                        </Badge>
+                      )}
+                      {timeline && timeline.monthsRemaining <= 0 && (
+                        <Badge variant="outline" className="bg-gray-500/10 text-gray-700 border-gray-300">
+                          Completed
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {project.programme} • {project.call}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-bold text-primary">
+                      €{project.totalBudget.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Total Budget</p>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Timeline Progress */}
+                  {timeline && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Project Timeline</span>
+                        <span className="font-medium">
+                          {timeline.monthsRemaining > 0 
+                            ? `${timeline.monthsRemaining} months remaining`
+                            : 'Completed'
+                          }
+                        </span>
+                      </div>
+                      <Progress value={timeline.progress} className="h-2" />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>{project.startMonth}/{project.startYear}</span>
+                        <span>{timeline.endDate.toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Project Details */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+                    <div className="flex items-start gap-2">
+                      <Calendar className="h-4 w-4 text-primary mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Duration</p>
+                        <p className="text-sm font-medium">{project.durationMonths || 'N/A'} months</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <Waves className="h-4 w-4 text-primary mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Wavelengths</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {project.wavelengths && project.wavelengths.length > 0 ? (
+                            project.wavelengths.slice(0, 2).map((wl, idx) => (
+                              <Badge key={idx} variant="secondary" className="text-xs px-1.5 py-0">
+                                {wl}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-sm">N/A</span>
+                          )}
+                          {project.wavelengths && project.wavelengths.length > 2 && (
+                            <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                              +{project.wavelengths.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <Server className="h-4 w-4 text-primary mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Platform</p>
+                        <p className="text-sm font-medium">{project.picPlatform || 'N/A'}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <TrendingUp className="h-4 w-4 text-primary mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Funding</p>
+                        <p className="text-sm font-medium">{project.fundedPercent}%</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Key Value */}
+                  {project.phixRole && (
+                    <div className="pt-2 border-t">
+                      <p className="text-xs text-muted-foreground mb-1">PHIX Key Value</p>
+                      <p className="text-sm">{project.phixRole}</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
 
         {filteredProjects.length === 0 && (
-          <Card className="md:col-span-2">
+          <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground">No granted projects yet</p>
+              <p className="text-muted-foreground mb-2">No granted projects yet</p>
+              <p className="text-sm text-muted-foreground">Mark proposals as granted to see them here</p>
             </CardContent>
           </Card>
         )}
