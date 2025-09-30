@@ -6,11 +6,31 @@ import { Badge } from '@/components/ui/badge';
 import { storage, Proposal } from '@/lib/storage';
 import { Plus, Search, FileDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { exportProposalToDocx } from '@/lib/exportProposal';
+import { useToast } from '@/hooks/use-toast';
 
 const Proposals = () => {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleExport = async (e: React.MouseEvent, proposal: Proposal) => {
+    e.stopPropagation();
+    try {
+      await exportProposalToDocx(proposal);
+      toast({
+        title: 'Export successful',
+        description: `${proposal.acronym} proposal exported to Word document`
+      });
+    } catch (error) {
+      toast({
+        title: 'Export failed',
+        description: 'Failed to export proposal',
+        variant: 'destructive'
+      });
+    }
+  };
 
   useEffect(() => {
     loadProposals();
@@ -61,9 +81,8 @@ const Proposals = () => {
           <Card
             key={proposal.id}
             className="cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => navigate(`/proposals/${proposal.id}`)}
           >
-            <CardHeader>
+            <CardHeader onClick={() => navigate(`/proposals/${proposal.id}`)}>
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold mb-1">
@@ -73,7 +92,16 @@ const Proposals = () => {
                     {proposal.programme} - {proposal.type}
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => handleExport(e, proposal)}
+                    className="gap-2"
+                  >
+                    <FileDown className="h-4 w-4" />
+                    Export
+                  </Button>
                   {proposal.isGranted && <Badge variant="default">Granted</Badge>}
                   <Badge variant="outline">
                     {proposal.fundedPercent}% Funded
@@ -81,7 +109,7 @@ const Proposals = () => {
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent onClick={() => navigate(`/proposals/${proposal.id}`)}>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
