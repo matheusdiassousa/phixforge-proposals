@@ -17,12 +17,16 @@ import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 
 const proposalSchema = z.object({
+  acronym: z.string().min(1, 'Acronym is required'),
   programme: z.string().min(1, 'Programme is required'),
   call: z.string().min(1, 'Call is required'),
   type: z.string().min(1, 'Type is required'),
   fundedPercent: z.number().min(0).max(100),
   deadline: z.string().min(1, 'Deadline is required'),
   totalBudget: z.number().min(0),
+  durationMonths: z.number().min(1).optional(),
+  startMonth: z.number().min(1).max(12).optional(),
+  startYear: z.number().min(2000).optional(),
   projectApplication: z.string().optional(),
   picPlatform: z.string().optional(),
   phixRole: z.string().optional(),
@@ -53,6 +57,7 @@ const ProposalForm = () => {
   const form = useForm<ProposalFormData>({
     resolver: zodResolver(proposalSchema),
     defaultValues: {
+      acronym: '',
       programme: '',
       call: '',
       type: '',
@@ -78,12 +83,16 @@ const ProposalForm = () => {
       const proposal = proposals.find((p) => p.id === id);
       if (proposal) {
         form.reset({
+          acronym: proposal.acronym || '',
           programme: proposal.programme,
           call: proposal.call,
           type: proposal.type,
           fundedPercent: proposal.fundedPercent,
           deadline: proposal.deadline,
           totalBudget: proposal.totalBudget,
+          durationMonths: proposal.durationMonths,
+          startMonth: proposal.startMonth,
+          startYear: proposal.startYear,
           projectApplication: proposal.projectApplication || '',
           picPlatform: proposal.picPlatform || '',
           phixRole: proposal.phixRole || '',
@@ -105,12 +114,16 @@ const ProposalForm = () => {
     
     const proposal: Proposal = {
       id: id || crypto.randomUUID(),
+      acronym: data.acronym,
       programme: data.programme,
       call: data.call,
       type: data.type,
       fundedPercent: data.fundedPercent,
       deadline: data.deadline,
       isGranted: isGranted,
+      durationMonths: data.durationMonths,
+      startMonth: data.startMonth,
+      startYear: data.startYear,
       totalBudget: data.totalBudget,
       projectApplication: data.projectApplication || '',
       wavelengths: wavelengths.filter(w => w.trim()),
@@ -221,6 +234,20 @@ const ProposalForm = () => {
               <CardTitle>General Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="acronym"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Acronym</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Project acronym" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -330,12 +357,76 @@ const ProposalForm = () => {
               </div>
 
               {id && (
-                <div className="flex items-center gap-2 p-4 bg-muted rounded-md">
-                  <Checkbox checked={isGranted} onCheckedChange={(checked) => setIsGranted(checked as boolean)} id="isGranted" />
-                  <label htmlFor="isGranted" className="text-sm font-medium cursor-pointer">
-                    Mark as Granted (after submission)
-                  </label>
-                </div>
+                <>
+                  <div className="flex items-center gap-2 p-4 bg-muted rounded-md">
+                    <Checkbox checked={isGranted} onCheckedChange={(checked) => setIsGranted(checked as boolean)} id="isGranted" />
+                    <label htmlFor="isGranted" className="text-sm font-medium cursor-pointer">
+                      Mark as Granted (after submission)
+                    </label>
+                  </div>
+
+                  {isGranted && (
+                    <div className="grid grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="durationMonths"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Duration (months)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                {...field}
+                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="startMonth"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Start Month</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="1"
+                                max="12"
+                                placeholder="1-12"
+                                {...field}
+                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="startYear"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Start Year</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="2024"
+                                {...field}
+                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>

@@ -1,12 +1,16 @@
 // Local storage management for offline data
 export interface Proposal {
   id: string;
+  acronym: string;
   programme: string;
   call: string;
   type: string;
   fundedPercent: number;
   deadline: string;
   isGranted: boolean;
+  durationMonths?: number;
+  startMonth?: number;
+  startYear?: number;
   totalBudget: number;
   projectApplication: string;
   wavelengths: string[];

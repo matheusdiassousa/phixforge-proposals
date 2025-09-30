@@ -21,8 +21,16 @@ const Proposals = () => {
     setProposals(data);
   };
 
+  const calculateEndDate = (startMonth: number, startYear: number, durationMonths: number) => {
+    const startDate = new Date(startYear, startMonth - 1);
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + durationMonths);
+    return endDate;
+  };
+
   const filteredProposals = proposals.filter(
     (p) =>
+      p.acronym?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.call.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.programme.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -57,9 +65,11 @@ const Proposals = () => {
           >
             <CardHeader>
               <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle>{proposal.call}</CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold mb-1">
+                    {proposal.acronym} - {proposal.call}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
                     {proposal.programme} - {proposal.type}
                   </p>
                 </div>
@@ -72,13 +82,20 @@ const Proposals = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">
-                  Deadline: {new Date(proposal.deadline).toLocaleDateString()}
-                </span>
-                <span className="font-semibold">
-                  €{proposal.totalBudget.toLocaleString()}
-                </span>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    Deadline: {new Date(proposal.deadline).toLocaleDateString()}
+                  </span>
+                  <span className="font-semibold">
+                    €{proposal.totalBudget.toLocaleString()}
+                  </span>
+                </div>
+                {proposal.isGranted && proposal.durationMonths && proposal.startMonth && proposal.startYear && (
+                  <div className="text-sm text-muted-foreground">
+                    Duration: {proposal.durationMonths} months ({proposal.startMonth}/{proposal.startYear} - {calculateEndDate(proposal.startMonth, proposal.startYear, proposal.durationMonths).toLocaleDateString()})
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
