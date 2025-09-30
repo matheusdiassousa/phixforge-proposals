@@ -118,9 +118,16 @@ export interface Person {
 
 export interface Organization {
   id: string;
-  name: string;
-  address: string;
-  country: string;
+  legalName: string;
+  shortName: string;
+  picNumber: string;
+  departments: Array<{
+    name: string;
+    street: string;
+    town: string;
+    postcode: string;
+    country: string;
+  }>;
 }
 
 const STORAGE_KEYS = {
