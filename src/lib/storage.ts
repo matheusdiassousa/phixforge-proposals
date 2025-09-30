@@ -1,0 +1,163 @@
+// Local storage management for offline data
+export interface Proposal {
+  id: string;
+  programme: string;
+  call: string;
+  type: string;
+  fundedPercent: number;
+  deadline: string;
+  isGranted: boolean;
+  totalBudget: number;
+  projectApplication: string;
+  wavelength: string;
+  picPlatform: string;
+  phixRole: string;
+  phixProcesses: string[];
+  partners: Array<{ name: string; country: string }>;
+  participants: Array<{
+    department: string;
+    street: string;
+    town: string;
+    postcode: string;
+    country: string;
+  }>;
+  mainContact: {
+    title: string;
+    gender: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    position: string;
+    department: string;
+    address: string;
+    phone: string;
+  };
+  otherContacts: Array<{
+    title: string;
+    gender: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    position: string;
+    department: string;
+    address: string;
+    phone: string;
+  }>;
+  researchers: Array<{
+    title: string;
+    name: string;
+    gender: string;
+    nationality: string;
+    email: string;
+    careerStage: string;
+    role: string;
+    identifierType: string;
+    identifier: string;
+  }>;
+  rolesInProject: string[];
+  publications: string[];
+  relatedProjects: string[];
+  infrastructure: string[];
+  workPackages: Array<{
+    number: string;
+    description: string;
+    leadPartner: string;
+    involvedPartners: string[];
+    phixPersonMonths: number;
+  }>;
+  pmCost: number;
+  travelCosts: Array<{ description: string; value: number }>;
+  otherCosts: Array<{ description: string; value: number }>;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  call: string;
+  website: string;
+  shortDescription: string;
+  status: 'Ongoing' | 'Completed';
+}
+
+export interface Process {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface Publication {
+  id: string;
+  title: string;
+  metadata: string;
+}
+
+export interface Infrastructure {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface Person {
+  id: string;
+  title: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  position: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  address: string;
+  country: string;
+}
+
+const STORAGE_KEYS = {
+  proposals: 'phixforge_proposals',
+  projects: 'phixforge_projects',
+  processes: 'phixforge_processes',
+  publications: 'phixforge_publications',
+  infrastructure: 'phixforge_infrastructure',
+  people: 'phixforge_people',
+  organizations: 'phixforge_organizations',
+};
+
+export const storage = {
+  get: <T>(key: keyof typeof STORAGE_KEYS): T[] => {
+    const data = localStorage.getItem(STORAGE_KEYS[key]);
+    return data ? JSON.parse(data) : [];
+  },
+
+  set: <T>(key: keyof typeof STORAGE_KEYS, data: T[]): void => {
+    localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(data));
+  },
+
+  exportAll: () => {
+    const allData = {
+      proposals: storage.get<Proposal>('proposals'),
+      projects: storage.get<Project>('projects'),
+      processes: storage.get<Process>('processes'),
+      publications: storage.get<Publication>('publications'),
+      infrastructure: storage.get<Infrastructure>('infrastructure'),
+      people: storage.get<Person>('people'),
+      organizations: storage.get<Organization>('organizations'),
+    };
+    return JSON.stringify(allData, null, 2);
+  },
+
+  importAll: (jsonString: string) => {
+    try {
+      const allData = JSON.parse(jsonString);
+      Object.keys(STORAGE_KEYS).forEach((key) => {
+        if (allData[key]) {
+          storage.set(key as keyof typeof STORAGE_KEYS, allData[key]);
+        }
+      });
+      return true;
+    } catch (error) {
+      console.error('Import failed:', error);
+      return false;
+    }
+  },
+};
