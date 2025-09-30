@@ -128,11 +128,11 @@ const Statistics = () => {
                 <span className="font-bold">{stats.successRate.toFixed(1)}%</span>
               </div>
               <div className="flex justify-between">
-                <span>Average Budget</span>
+                <span>Average PHIX Co-Funding</span>
                 <span className="font-bold">
                   €
                   {stats.grantedProposals > 0
-                    ? (stats.totalBudget / stats.grantedProposals / 1000).toFixed(0)
+                    ? (stats.coFunding / stats.grantedProposals / 1000).toFixed(0)
                     : 0}
                   K
                 </span>

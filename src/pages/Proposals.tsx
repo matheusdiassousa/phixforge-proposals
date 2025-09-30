@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 const Proposals = () => {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showOnlyGranted, setShowOnlyGranted] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -48,12 +49,16 @@ const Proposals = () => {
     return endDate;
   };
 
-  const filteredProposals = proposals.filter(
-    (p) =>
+  const filteredProposals = proposals.filter((p) => {
+    const matchesSearch =
       p.acronym?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.call.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.programme.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      p.programme.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesGranted = showOnlyGranted ? p.isGranted : true;
+    
+    return matchesSearch && matchesGranted;
+  });
 
   return (
     <div className="p-6">
@@ -69,6 +74,12 @@ const Proposals = () => {
               className="pl-9 w-64"
             />
           </div>
+          <Button
+            variant={showOnlyGranted ? "default" : "outline"}
+            onClick={() => setShowOnlyGranted(!showOnlyGranted)}
+          >
+            {showOnlyGranted ? "Show All" : "Granted Only"}
+          </Button>
           <Button onClick={() => navigate('/proposals/new')}>
             <Plus className="h-4 w-4" />
             New Proposal
