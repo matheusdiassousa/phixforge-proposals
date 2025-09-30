@@ -15,6 +15,10 @@ export const exportProposalToDocx = async (proposal: Proposal) => {
   const selectedProcesses = processes.filter(p => proposal.phixProcesses?.includes(p.id));
   const selectedPublications = publications.filter(p => proposal.publications?.includes(p.id));
   const selectedInfrastructures = infrastructures.filter(i => proposal.infrastructure?.includes(i.id));
+  const selectedPeopleData = proposal.selectedPeople?.map(sp => {
+    const person = people.find(p => p.id === sp.personId);
+    return person ? { ...person, projectRole: sp.role } : null;
+  }).filter(Boolean) || [];
 
   const doc = new Document({
     sections: [{
@@ -290,6 +294,45 @@ export const exportProposalToDocx = async (proposal: Proposal) => {
               children: [
                 new TextRun({ text: `${idx + 1}. `, bold: true }),
                 new TextRun(`${partner.name} - ${partner.country}`)
+              ],
+              spacing: { after: 100 }
+            })
+          )
+        ] : []),
+
+        // Team Members
+        ...(selectedPeopleData.length > 0 ? [
+          new Paragraph({
+            text: 'Team Members',
+            heading: HeadingLevel.HEADING_2,
+            spacing: { before: 300, after: 200 }
+          }),
+          ...selectedPeopleData.map((person: any) => 
+            new Paragraph({
+              children: [
+                new TextRun({ text: `${person.title} ${person.firstName} ${person.lastName}`, bold: true }),
+                new TextRun({ text: ` - ${person.projectRole}` }),
+                ...(person.position ? [new TextRun({ text: ` (${person.position})` })] : []),
+                ...(person.email ? [new TextRun({ text: ` - ${person.email}` })] : []),
+                ...(person.careerStage ? [new TextRun({ text: ` - ${person.careerStage}` })] : [])
+              ],
+              spacing: { after: 100 }
+            })
+          )
+        ] : []),
+
+        // PHIX Organization Roles
+        ...(proposal.phixOrgRoles && proposal.phixOrgRoles.length > 0 ? [
+          new Paragraph({
+            text: 'PHIX Role in Project (as participating organization)',
+            heading: HeadingLevel.HEADING_2,
+            spacing: { before: 300, after: 200 }
+          }),
+          ...proposal.phixOrgRoles.map(role => 
+            new Paragraph({
+              children: [
+                new TextRun({ text: '• ' }),
+                new TextRun(role)
               ],
               spacing: { after: 100 }
             })

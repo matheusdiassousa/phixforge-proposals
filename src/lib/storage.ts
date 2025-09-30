@@ -60,6 +60,8 @@ export interface Proposal {
     identifier: string;
   }>;
   rolesInProject: string[];
+  phixOrgRoles: string[];
+  selectedPeople: Array<{ personId: string; role: string }>;
   publications: string[];
   relatedProjects: string[];
   infrastructure: string[];
@@ -109,6 +111,9 @@ export interface Person {
   lastName: string;
   email: string;
   position: string;
+  gender: string;
+  nationality: string;
+  careerStage: string;
 }
 
 export interface Organization {

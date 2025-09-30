@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { storage, Proposal, Process, Publication, Infrastructure, Project } from '@/lib/storage';
+import { storage, Proposal, Process, Publication, Infrastructure, Project, Person } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -44,6 +44,8 @@ const ProposalForm = () => {
   const [selectedPublications, setSelectedPublications] = useState<string[]>([]);
   const [selectedInfrastructure, setSelectedInfrastructure] = useState<string[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+  const [selectedPeople, setSelectedPeople] = useState<Array<{ personId: string; role: string }>>([]);
+  const [phixOrgRoles, setPhixOrgRoles] = useState<string[]>([]);
   const [partners, setPartners] = useState<Array<{ name: string; country: string }>>([{ name: '', country: '' }]);
   const [workPackages, setWorkPackages] = useState<Array<{ 
     number: string; 
@@ -65,6 +67,7 @@ const ProposalForm = () => {
   const [publications, setPublications] = useState<Publication[]>([]);
   const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [people, setPeople] = useState<Person[]>([]);
   
   const form = useForm<ProposalFormData>({
     resolver: zodResolver(proposalSchema),
@@ -90,6 +93,7 @@ const ProposalForm = () => {
     setPublications(storage.get<Publication>('publications'));
     setInfrastructures(storage.get<Infrastructure>('infrastructure'));
     setProjects(storage.get<Project>('projects'));
+    setPeople(storage.get<Person>('people'));
     setCustomProgrammes(storage.get<string>('customProgrammes'));
   }, []);
 
@@ -119,6 +123,8 @@ const ProposalForm = () => {
         setSelectedPublications(proposal.publications || []);
         setSelectedInfrastructure(proposal.infrastructure || []);
         setSelectedProjects(proposal.relatedProjects || []);
+        setSelectedPeople(proposal.selectedPeople || []);
+        setPhixOrgRoles(proposal.phixOrgRoles || []);
         if (proposal.partners?.length) setPartners(proposal.partners);
         if (proposal.workPackages?.length) setWorkPackages(proposal.workPackages);
       }
@@ -184,6 +190,8 @@ const ProposalForm = () => {
       otherContacts: [],
       researchers: [],
       rolesInProject: [],
+      phixOrgRoles: phixOrgRoles,
+      selectedPeople: selectedPeople,
       publications: selectedPublications,
       relatedProjects: selectedProjects,
       infrastructure: selectedInfrastructure,
@@ -895,6 +903,93 @@ const ProposalForm = () => {
                     Total PHIX Budget: €{calculatePhixBudget().toLocaleString()}
                   </p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Team Members</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {people.length > 0 ? (
+                <div className="space-y-3">
+                  {people.map((person) => {
+                    const isSelected = selectedPeople.find(sp => sp.personId === person.id);
+                    return (
+                      <div key={person.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center space-x-3 flex-1">
+                          <Checkbox
+                            id={`person-${person.id}`}
+                            checked={!!isSelected}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedPeople([...selectedPeople, { personId: person.id, role: 'Team Member' }]);
+                              } else {
+                                setSelectedPeople(selectedPeople.filter(sp => sp.personId !== person.id));
+                              }
+                            }}
+                          />
+                          <label htmlFor={`person-${person.id}`} className="text-sm cursor-pointer flex-1">
+                            {person.title} {person.firstName} {person.lastName}
+                            {person.position && <span className="text-muted-foreground"> - {person.position}</span>}
+                          </label>
+                        </div>
+                        {isSelected && (
+                          <Select
+                            value={isSelected.role}
+                            onValueChange={(value) => {
+                              setSelectedPeople(selectedPeople.map(sp =>
+                                sp.personId === person.id ? { ...sp, role: value } : sp
+                              ));
+                            }}
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Team Member">Team Member</SelectItem>
+                              <SelectItem value="Leading">Leading</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No people available. Add people in the Reusable Data section first.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>PHIX Role in Project</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Label className="text-sm">Select all roles that apply to PHIX as participating organization:</Label>
+              <div className="space-y-2">
+                {['Project management', 'Communication, dissemination and engagement', 'Provision of research and technology infrastructure'].map((role) => (
+                  <div key={role} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`phix-role-${role}`}
+                      checked={phixOrgRoles.includes(role)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setPhixOrgRoles([...phixOrgRoles, role]);
+                        } else {
+                          setPhixOrgRoles(phixOrgRoles.filter(r => r !== role));
+                        }
+                      }}
+                    />
+                    <label htmlFor={`phix-role-${role}`} className="text-sm cursor-pointer">
+                      {role}
+                    </label>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>

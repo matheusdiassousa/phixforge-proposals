@@ -16,6 +16,9 @@ export const PeopleTab = () => {
     lastName: '',
     email: '',
     position: '',
+    gender: '',
+    nationality: '',
+    careerStage: '',
   });
   const { toast } = useToast();
 
@@ -40,7 +43,7 @@ export const PeopleTab = () => {
     storage.set('people', updated);
     setPeople(updated);
     setEditing(null);
-    setFormData({ title: '', firstName: '', lastName: '', email: '', position: '' });
+    setFormData({ title: '', firstName: '', lastName: '', email: '', position: '', gender: '', nationality: '', careerStage: '' });
     toast({ title: editing ? 'Person updated' : 'Person added' });
   };
 
@@ -59,6 +62,9 @@ export const PeopleTab = () => {
       lastName: person.lastName,
       email: person.email,
       position: person.position,
+      gender: person.gender || '',
+      nationality: person.nationality || '',
+      careerStage: person.careerStage || '',
     });
   };
 
@@ -110,6 +116,40 @@ export const PeopleTab = () => {
               onChange={(e) => setFormData({ ...formData, position: e.target.value })}
             />
           </div>
+          <div className="grid grid-cols-3 gap-4">
+            <Select
+              value={formData.gender}
+              onValueChange={(value) => setFormData({ ...formData, gender: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Male">Male</SelectItem>
+                <SelectItem value="Female">Female</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              placeholder="Nationality"
+              value={formData.nationality}
+              onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
+            />
+            <Select
+              value={formData.careerStage}
+              onValueChange={(value) => setFormData({ ...formData, careerStage: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Career Stage" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Category A - Top grade researcher">Category A - Top grade researcher</SelectItem>
+                <SelectItem value="Category B - Senior researcher">Category B - Senior researcher</SelectItem>
+                <SelectItem value="Category C - Recognised researcher">Category C - Recognised researcher</SelectItem>
+                <SelectItem value="Category D - First stage researcher">Category D - First stage researcher</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex gap-2">
             <Button onClick={handleSave}>
               {editing ? 'Update' : 'Add'}
@@ -119,7 +159,7 @@ export const PeopleTab = () => {
                 variant="outline"
                 onClick={() => {
                   setEditing(null);
-                  setFormData({ title: '', firstName: '', lastName: '', email: '', position: '' });
+                  setFormData({ title: '', firstName: '', lastName: '', email: '', position: '', gender: '', nationality: '', careerStage: '' });
                 }}
               >
                 Cancel
@@ -139,6 +179,9 @@ export const PeopleTab = () => {
                     {person.title} {person.firstName} {person.lastName}
                   </CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">{person.position}</p>
+                  {person.careerStage && (
+                    <p className="text-sm text-muted-foreground">{person.careerStage}</p>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -158,9 +201,11 @@ export const PeopleTab = () => {
                 </div>
               </div>
             </CardHeader>
-            {person.email && (
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{person.email}</p>
+            {(person.email || person.gender || person.nationality) && (
+              <CardContent className="space-y-1">
+                {person.email && <p className="text-sm text-muted-foreground">{person.email}</p>}
+                {person.gender && <p className="text-sm text-muted-foreground">Gender: {person.gender}</p>}
+                {person.nationality && <p className="text-sm text-muted-foreground">Nationality: {person.nationality}</p>}
               </CardContent>
             )}
           </Card>
