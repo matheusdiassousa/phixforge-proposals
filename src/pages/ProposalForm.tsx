@@ -10,10 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { storage, Proposal } from '@/lib/storage';
+import { storage, Proposal, Process, Publication, Infrastructure, Project } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 
 const proposalSchema = z.object({
   programme: z.string().min(1, 'Programme is required'),
@@ -21,10 +22,8 @@ const proposalSchema = z.object({
   type: z.string().min(1, 'Type is required'),
   fundedPercent: z.number().min(0).max(100),
   deadline: z.string().min(1, 'Deadline is required'),
-  isGranted: z.boolean(),
   totalBudget: z.number().min(0),
   projectApplication: z.string().optional(),
-  wavelength: z.string().optional(),
   picPlatform: z.string().optional(),
   phixRole: z.string().optional(),
 });
@@ -35,10 +34,21 @@ const ProposalForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isGranted, setIsGranted] = useState(false);
+  const [wavelengths, setWavelengths] = useState<string[]>(['']);
+  const [selectedProcesses, setSelectedProcesses] = useState<string[]>([]);
+  const [selectedPublications, setSelectedPublications] = useState<string[]>([]);
+  const [selectedInfrastructure, setSelectedInfrastructure] = useState<string[]>([]);
+  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [partners, setPartners] = useState<Array<{ name: string; country: string }>>([{ name: '', country: '' }]);
   const [workPackages, setWorkPackages] = useState<Array<{ number: string; description: string; leadPartner: string; involvedPartners: string[]; phixPersonMonths: number }>>([
     { number: '', description: '', leadPartner: '', involvedPartners: [], phixPersonMonths: 0 }
   ]);
+  
+  const [processes, setProcesses] = useState<Process[]>([]);
+  const [publications, setPublications] = useState<Publication[]>([]);
+  const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   
   const form = useForm<ProposalFormData>({
     resolver: zodResolver(proposalSchema),
@@ -48,14 +58,19 @@ const ProposalForm = () => {
       type: '',
       fundedPercent: 100,
       deadline: '',
-      isGranted: false,
       totalBudget: 0,
       projectApplication: '',
-      wavelength: '',
       picPlatform: '',
       phixRole: '',
     },
   });
+
+  useEffect(() => {
+    setProcesses(storage.get<Process>('processes'));
+    setPublications(storage.get<Publication>('publications'));
+    setInfrastructures(storage.get<Infrastructure>('infrastructure'));
+    setProjects(storage.get<Project>('projects'));
+  }, []);
 
   useEffect(() => {
     if (id) {
@@ -68,13 +83,17 @@ const ProposalForm = () => {
           type: proposal.type,
           fundedPercent: proposal.fundedPercent,
           deadline: proposal.deadline,
-          isGranted: proposal.isGranted,
           totalBudget: proposal.totalBudget,
           projectApplication: proposal.projectApplication || '',
-          wavelength: proposal.wavelength || '',
           picPlatform: proposal.picPlatform || '',
           phixRole: proposal.phixRole || '',
         });
+        setIsGranted(proposal.isGranted);
+        setWavelengths(proposal.wavelengths?.length ? proposal.wavelengths : ['']);
+        setSelectedProcesses(proposal.phixProcesses || []);
+        setSelectedPublications(proposal.publications || []);
+        setSelectedInfrastructure(proposal.infrastructure || []);
+        setSelectedProjects(proposal.relatedProjects || []);
         if (proposal.partners?.length) setPartners(proposal.partners);
         if (proposal.workPackages?.length) setWorkPackages(proposal.workPackages);
       }
@@ -91,15 +110,15 @@ const ProposalForm = () => {
       type: data.type,
       fundedPercent: data.fundedPercent,
       deadline: data.deadline,
-      isGranted: data.isGranted,
+      isGranted: isGranted,
       totalBudget: data.totalBudget,
       projectApplication: data.projectApplication || '',
-      wavelength: data.wavelength || '',
+      wavelengths: wavelengths.filter(w => w.trim()),
       picPlatform: data.picPlatform || '',
       phixRole: data.phixRole || '',
       partners: partners.filter(p => p.name),
       workPackages: workPackages.filter(wp => wp.number),
-      phixProcesses: [],
+      phixProcesses: selectedProcesses,
       participants: [],
       mainContact: {
         title: '',
@@ -115,9 +134,9 @@ const ProposalForm = () => {
       otherContacts: [],
       researchers: [],
       rolesInProject: [],
-      publications: [],
-      relatedProjects: [],
-      infrastructure: [],
+      publications: selectedPublications,
+      relatedProjects: selectedProjects,
+      infrastructure: selectedInfrastructure,
       pmCost: 0,
       travelCosts: [],
       otherCosts: [],
@@ -136,6 +155,38 @@ const ProposalForm = () => {
       toast({ title: 'Proposal created successfully' });
     }
     navigate('/proposals');
+  };
+
+  const addWavelength = () => setWavelengths([...wavelengths, '']);
+  const removeWavelength = (index: number) => setWavelengths(wavelengths.filter((_, i) => i !== index));
+  const updateWavelength = (index: number, value: string) => {
+    const updated = [...wavelengths];
+    updated[index] = value;
+    setWavelengths(updated);
+  };
+
+  const toggleProcess = (processId: string) => {
+    setSelectedProcesses(prev =>
+      prev.includes(processId) ? prev.filter(id => id !== processId) : [...prev, processId]
+    );
+  };
+
+  const togglePublication = (pubId: string) => {
+    setSelectedPublications(prev =>
+      prev.includes(pubId) ? prev.filter(id => id !== pubId) : [...prev, pubId]
+    );
+  };
+
+  const toggleInfrastructure = (infraId: string) => {
+    setSelectedInfrastructure(prev =>
+      prev.includes(infraId) ? prev.filter(id => id !== infraId) : [...prev, infraId]
+    );
+  };
+
+  const toggleProject = (projectId: string) => {
+    setSelectedProjects(prev =>
+      prev.includes(projectId) ? prev.filter(id => id !== projectId) : [...prev, projectId]
+    );
   };
 
   const addPartner = () => setPartners([...partners, { name: '', country: '' }]);
@@ -278,18 +329,14 @@ const ProposalForm = () => {
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="isGranted"
-                render={({ field }) => (
-                  <FormItem className="flex items-center gap-2 space-y-0">
-                    <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <FormLabel className="!mt-0">Is Granted?</FormLabel>
-                  </FormItem>
-                )}
-              />
+              {id && (
+                <div className="flex items-center gap-2 p-4 bg-muted rounded-md">
+                  <Checkbox checked={isGranted} onCheckedChange={(checked) => setIsGranted(checked as boolean)} id="isGranted" />
+                  <label htmlFor="isGranted" className="text-sm font-medium cursor-pointer">
+                    Mark as Granted (after submission)
+                  </label>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -312,35 +359,19 @@ const ProposalForm = () => {
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="wavelength"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Wavelength</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Wavelength" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="picPlatform"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>PIC Platform</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="PIC Platform" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="picPlatform"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>PIC Platform</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="PIC Platform" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -355,6 +386,33 @@ const ProposalForm = () => {
                   </FormItem>
                 )}
               />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Wavelengths</CardTitle>
+              <Button type="button" variant="outline" size="sm" onClick={addWavelength}>
+                <Plus className="h-4 w-4" />
+                Add Wavelength
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {wavelengths.map((wavelength, index) => (
+                <div key={index} className="flex gap-4">
+                  <Input
+                    placeholder="Wavelength"
+                    value={wavelength}
+                    onChange={(e) => updateWavelength(index, e.target.value)}
+                    className="flex-1"
+                  />
+                  {wavelengths.length > 1 && (
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeWavelength(index)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
             </CardContent>
           </Card>
 
@@ -388,6 +446,99 @@ const ProposalForm = () => {
                   )}
                 </div>
               ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Reusable Data</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {processes.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">PHIX Processes</Label>
+                  <div className="space-y-2">
+                    {processes.map((process) => (
+                      <div key={process.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`process-${process.id}`}
+                          checked={selectedProcesses.includes(process.id)}
+                          onCheckedChange={() => toggleProcess(process.id)}
+                        />
+                        <label htmlFor={`process-${process.id}`} className="text-sm cursor-pointer flex-1">
+                          {process.name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {publications.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Publications</Label>
+                  <div className="space-y-2">
+                    {publications.map((pub) => (
+                      <div key={pub.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`pub-${pub.id}`}
+                          checked={selectedPublications.includes(pub.id)}
+                          onCheckedChange={() => togglePublication(pub.id)}
+                        />
+                        <label htmlFor={`pub-${pub.id}`} className="text-sm cursor-pointer flex-1">
+                          {pub.title}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {infrastructures.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Infrastructure</Label>
+                  <div className="space-y-2">
+                    {infrastructures.map((infra) => (
+                      <div key={infra.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`infra-${infra.id}`}
+                          checked={selectedInfrastructure.includes(infra.id)}
+                          onCheckedChange={() => toggleInfrastructure(infra.id)}
+                        />
+                        <label htmlFor={`infra-${infra.id}`} className="text-sm cursor-pointer flex-1">
+                          {infra.name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {projects.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Related Projects</Label>
+                  <div className="space-y-2">
+                    {projects.map((project) => (
+                      <div key={project.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`project-${project.id}`}
+                          checked={selectedProjects.includes(project.id)}
+                          onCheckedChange={() => toggleProject(project.id)}
+                        />
+                        <label htmlFor={`project-${project.id}`} className="text-sm cursor-pointer flex-1">
+                          {project.name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {processes.length === 0 && publications.length === 0 && infrastructures.length === 0 && projects.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No reusable data available. Add data in the Reusable Data section first.
+                </p>
+              )}
             </CardContent>
           </Card>
 

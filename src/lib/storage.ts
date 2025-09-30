@@ -9,7 +9,7 @@ export interface Proposal {
   isGranted: boolean;
   totalBudget: number;
   projectApplication: string;
-  wavelength: string;
+  wavelengths: string[];
   picPlatform: string;
   phixRole: string;
   phixProcesses: string[];
