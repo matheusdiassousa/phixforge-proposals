@@ -23,7 +23,7 @@ const Statistics = () => {
     const projects = storage.get<Project>('projects');
 
     const granted = proposals.filter((p) => p.isGranted);
-    const totalBudget = granted.reduce((sum, p) => sum + p.totalBudget, 0);
+    const totalBudget = granted.reduce((sum, p) => sum + (p.phixBudget || 0), 0);
     
     const coFunding = granted.reduce((sum, p) => {
       if (p.fundedPercent < 100) {
@@ -75,7 +75,7 @@ const Statistics = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Budget Captured</CardTitle>
+            <CardTitle className="text-sm font-medium">Total PHIX Budget</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -128,7 +128,7 @@ const Statistics = () => {
                 <span className="font-bold">{stats.successRate.toFixed(1)}%</span>
               </div>
               <div className="flex justify-between">
-                <span>Average EU Budget</span>
+                <span>Average PHIX Budget</span>
                 <span className="font-bold">
                   €
                   {stats.grantedProposals > 0
