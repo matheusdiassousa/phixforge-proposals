@@ -4,10 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { storage, Proposal } from '@/lib/storage';
-import { Search, Calendar, Euro, Waves, Server, TrendingUp, Clock } from 'lucide-react';
+import { Search, Calendar, Euro, Waves, Server, TrendingUp, Clock, FileText, CheckCircle } from 'lucide-react';
 
 const Projects = () => {
   const [grantedProjects, setGrantedProjects] = useState<Proposal[]>([]);
+  const [totalProposals, setTotalProposals] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -16,6 +17,7 @@ const Projects = () => {
 
   const loadGrantedProjects = () => {
     const proposals = storage.get<Proposal>('proposals');
+    setTotalProposals(proposals.length);
     const granted = proposals.filter(p => p.isGranted);
     // Sort by PHIX budget descending
     granted.sort((a, b) => (b.phixBudget || 0) - (a.phixBudget || 0));
@@ -64,15 +66,30 @@ const Projects = () => {
       </div>
 
       {/* Summary Stats */}
-      <div className="grid gap-4 md:grid-cols-4 mb-6">
+      <div className="grid gap-4 md:grid-cols-5 mb-6">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Projects</p>
-                <p className="text-2xl font-bold">{filteredProjects.length}</p>
+                <p className="text-sm text-muted-foreground">Total Proposals</p>
+                <p className="text-2xl font-bold">{totalProposals}</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-primary opacity-60" />
+              <FileText className="h-8 w-8 text-muted-foreground opacity-60" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Granted Projects</p>
+                <p className="text-2xl font-bold">{grantedProjects.length}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {totalProposals > 0 ? Math.round((grantedProjects.length / totalProposals) * 100) : 0}% success rate
+                </p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-600 opacity-60" />
             </div>
           </CardContent>
         </Card>
@@ -82,7 +99,7 @@ const Projects = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total PHIX Budget</p>
-                <p className="text-2xl font-bold">€{filteredProjects.reduce((acc, p) => acc + (p.phixBudget || 0), 0).toLocaleString()}</p>
+                <p className="text-2xl font-bold">€{grantedProjects.reduce((acc, p) => acc + (p.phixBudget || 0), 0).toLocaleString()}</p>
               </div>
               <Euro className="h-8 w-8 text-primary opacity-60" />
             </div>
@@ -95,7 +112,7 @@ const Projects = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Active Projects</p>
                 <p className="text-2xl font-bold">
-                  {filteredProjects.filter(p => {
+                  {grantedProjects.filter(p => {
                     if (!p.startDate || !p.durationMonths) return false;
                     const { monthsRemaining } = calculateTimeRemaining(p.startDate, p.durationMonths);
                     return monthsRemaining > 0;
@@ -113,7 +130,7 @@ const Projects = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Avg. Duration</p>
                 <p className="text-2xl font-bold">
-                  {Math.round(filteredProjects.reduce((acc, p) => acc + (p.durationMonths || 0), 0) / filteredProjects.length || 0)}m
+                  {Math.round(grantedProjects.reduce((acc, p) => acc + (p.durationMonths || 0), 0) / grantedProjects.length || 0)}m
                 </p>
               </div>
               <Calendar className="h-8 w-8 text-primary opacity-60" />

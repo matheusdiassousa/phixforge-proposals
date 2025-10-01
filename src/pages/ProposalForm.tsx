@@ -3,8 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,14 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { storage, Proposal, Process, Publication, Infrastructure, Project, Person } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
 
 const proposalSchema = z.object({
   acronym: z.string().min(1, 'Acronym is required'),
@@ -488,41 +483,70 @@ const ProposalForm = () => {
                 <FormField
                   control={form.control}
                   name="startDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Start Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(new Date(field.value), "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value ? new Date(field.value) : undefined}
-                            onSelect={(date) => field.onChange(date?.toISOString())}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const currentDate = field.value ? new Date(field.value) : null;
+                    const day = currentDate?.getDate() || '';
+                    const month = currentDate ? currentDate.getMonth() + 1 : '';
+                    const year = currentDate?.getFullYear() || '';
+
+                    const updateDate = (newDay: number, newMonth: number, newYear: number) => {
+                      if (newDay && newMonth && newYear) {
+                        const date = new Date(newYear, newMonth - 1, newDay);
+                        field.onChange(date.toISOString());
+                      }
+                    };
+
+                    return (
+                      <FormItem>
+                        <FormLabel>Start Date</FormLabel>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Day</Label>
+                            <Input
+                              type="number"
+                              min="1"
+                              max="31"
+                              placeholder="DD"
+                              value={day}
+                              onChange={(e) => {
+                                const newDay = Number(e.target.value);
+                                if (month && year) updateDate(newDay, Number(month), Number(year));
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Month</Label>
+                            <Input
+                              type="number"
+                              min="1"
+                              max="12"
+                              placeholder="MM"
+                              value={month}
+                              onChange={(e) => {
+                                const newMonth = Number(e.target.value);
+                                if (day && year) updateDate(Number(day), newMonth, Number(year));
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Year</Label>
+                            <Input
+                              type="number"
+                              min="2000"
+                              max="2100"
+                              placeholder="YYYY"
+                              value={year}
+                              onChange={(e) => {
+                                const newYear = Number(e.target.value);
+                                if (day && month) updateDate(Number(day), Number(month), newYear);
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
               </div>
 
