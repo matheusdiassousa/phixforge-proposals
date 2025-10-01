@@ -15,15 +15,15 @@ const ReusableData = () => {
       <h1 className="text-3xl font-bold mb-6">Reusable Data</h1>
 
       <Tabs defaultValue="processes" className="w-full">
-        <TabsList className="grid w-full grid-cols-8">
-          <TabsTrigger value="processes">Processes</TabsTrigger>
-          <TabsTrigger value="publications">Publications</TabsTrigger>
-          <TabsTrigger value="infrastructure">Infrastructure</TabsTrigger>
-          <TabsTrigger value="people">People</TabsTrigger>
-          <TabsTrigger value="organizations">Organizations</TabsTrigger>
-          <TabsTrigger value="personnel">Personnel Involvement</TabsTrigger>
-          <TabsTrigger value="exploitation">Exploitation</TabsTrigger>
-          <TabsTrigger value="company">Company Description</TabsTrigger>
+        <TabsList className="w-full flex-wrap h-auto gap-1 p-2">
+          <TabsTrigger value="processes" className="flex-1 min-w-[140px]">Processes</TabsTrigger>
+          <TabsTrigger value="publications" className="flex-1 min-w-[140px]">Publications</TabsTrigger>
+          <TabsTrigger value="infrastructure" className="flex-1 min-w-[140px]">Infrastructure</TabsTrigger>
+          <TabsTrigger value="people" className="flex-1 min-w-[140px]">People</TabsTrigger>
+          <TabsTrigger value="organizations" className="flex-1 min-w-[140px]">Organizations</TabsTrigger>
+          <TabsTrigger value="personnel" className="flex-1 min-w-[140px]">Personnel Involvement</TabsTrigger>
+          <TabsTrigger value="exploitation" className="flex-1 min-w-[140px]">Exploitation</TabsTrigger>
+          <TabsTrigger value="company" className="flex-1 min-w-[140px]">Company Description</TabsTrigger>
         </TabsList>
 
         <TabsContent value="processes">
