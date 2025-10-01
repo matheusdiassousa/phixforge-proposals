@@ -40,19 +40,20 @@ const Statistics = () => {
     let completedCount = 0;
 
     granted.forEach((p) => {
-      if (p.startDate && p.durationMonths) {
+      // Count as completed if explicitly marked as completed
+      if (p.isCompleted) {
+        completedCount++;
+      } 
+      // Count as ongoing if: granted + has start date + today > start date + today <= end date + not completed
+      else if (p.startDate && p.durationMonths) {
         const startDate = new Date(p.startDate);
         const totalMonths = p.durationMonths + (p.extensionMonths || 0);
         const endDate = new Date(startDate);
         endDate.setMonth(endDate.getMonth() + totalMonths);
 
-        if (p.isCompleted) {
-          completedCount++;
-        } else if (today >= startDate && today <= endDate) {
+        // Only count as ongoing if project has started (today > startDate) and is within project timeline
+        if (today > startDate && today <= endDate) {
           ongoingCount++;
-        } else if (today > endDate) {
-          // Project ended but not marked as complete - could still count as ongoing or not count at all
-          // Based on user's description, only count as complete if marked
         }
       }
     });

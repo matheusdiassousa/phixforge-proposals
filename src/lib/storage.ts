@@ -66,6 +66,10 @@ export interface Proposal {
   publications: string[];
   relatedProjects: string[];
   infrastructure: string[];
+  organizations: string[];
+  personnelInvolvement: string[];
+  exploitation: string[];
+  companyDescription: string[];
   workPackages: Array<{
     number: string;
     description: string;

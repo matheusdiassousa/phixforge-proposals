@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { storage, Proposal, Process, Publication, Infrastructure, Project, Person } from '@/lib/storage';
+import { storage, Proposal, Process, Publication, Infrastructure, Project, Person, Organization, PersonnelInvolvement, Exploitation, CompanyDescription } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -47,6 +47,10 @@ const ProposalForm = () => {
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [selectedPeople, setSelectedPeople] = useState<Array<{ personId: string; role: string }>>([]);
   const [phixOrgRoles, setPhixOrgRoles] = useState<string[]>([]);
+  const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>([]);
+  const [selectedPersonnelInvolvement, setSelectedPersonnelInvolvement] = useState<string[]>([]);
+  const [selectedExploitation, setSelectedExploitation] = useState<string[]>([]);
+  const [selectedCompanyDescription, setSelectedCompanyDescription] = useState<string[]>([]);
   const [partners, setPartners] = useState<Array<{ name: string; country: string }>>([{ name: '', country: '' }]);
   const [workPackages, setWorkPackages] = useState<Array<{ 
     number: string; 
@@ -77,6 +81,10 @@ const ProposalForm = () => {
   const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [personnelInvolvement, setPersonnelInvolvement] = useState<PersonnelInvolvement[]>([]);
+  const [exploitations, setExploitations] = useState<Exploitation[]>([]);
+  const [companyDescriptions, setCompanyDescriptions] = useState<CompanyDescription[]>([]);
   
   const form = useForm<ProposalFormData>({
     resolver: zodResolver(proposalSchema),
@@ -103,6 +111,10 @@ const ProposalForm = () => {
     setInfrastructures(storage.get<Infrastructure>('infrastructure'));
     setProjects(storage.get<Project>('projects'));
     setPeople(storage.get<Person>('people'));
+    setOrganizations(storage.get<Organization>('organizations'));
+    setPersonnelInvolvement(storage.get<PersonnelInvolvement>('personnelInvolvement'));
+    setExploitations(storage.get<Exploitation>('exploitation'));
+    setCompanyDescriptions(storage.get<CompanyDescription>('companyDescription'));
     setCustomProgrammes(storage.get<string>('customProgrammes'));
   }, []);
 
@@ -135,6 +147,10 @@ const ProposalForm = () => {
         setSelectedProjects(proposal.relatedProjects || []);
         setSelectedPeople(proposal.selectedPeople || []);
         setPhixOrgRoles(proposal.phixOrgRoles || []);
+        setSelectedOrganizations(proposal.organizations || []);
+        setSelectedPersonnelInvolvement(proposal.personnelInvolvement || []);
+        setSelectedExploitation(proposal.exploitation || []);
+        setSelectedCompanyDescription(proposal.companyDescription || []);
         if (proposal.partners?.length) setPartners(proposal.partners);
         if (proposal.workPackages?.length) setWorkPackages(proposal.workPackages);
         
@@ -219,6 +235,10 @@ const ProposalForm = () => {
       publications: selectedPublications,
       relatedProjects: selectedProjects,
       infrastructure: selectedInfrastructure,
+      organizations: selectedOrganizations,
+      personnelInvolvement: selectedPersonnelInvolvement,
+      exploitation: selectedExploitation,
+      companyDescription: selectedCompanyDescription,
     };
 
     if (id) {
@@ -265,6 +285,30 @@ const ProposalForm = () => {
   const toggleProject = (projectId: string) => {
     setSelectedProjects(prev =>
       prev.includes(projectId) ? prev.filter(id => id !== projectId) : [...prev, projectId]
+    );
+  };
+
+  const toggleOrganization = (orgId: string) => {
+    setSelectedOrganizations(prev =>
+      prev.includes(orgId) ? prev.filter(id => id !== orgId) : [...prev, orgId]
+    );
+  };
+
+  const togglePersonnelInvolvement = (piId: string) => {
+    setSelectedPersonnelInvolvement(prev =>
+      prev.includes(piId) ? prev.filter(id => id !== piId) : [...prev, piId]
+    );
+  };
+
+  const toggleExploitation = (expId: string) => {
+    setSelectedExploitation(prev =>
+      prev.includes(expId) ? prev.filter(id => id !== expId) : [...prev, expId]
+    );
+  };
+
+  const toggleCompanyDescription = (cdId: string) => {
+    setSelectedCompanyDescription(prev =>
+      prev.includes(cdId) ? prev.filter(id => id !== cdId) : [...prev, cdId]
     );
   };
 
@@ -480,6 +524,12 @@ const ProposalForm = () => {
                       setBudgetDisplay(numValue.toLocaleString('pt-PT'));
                     };
 
+                    const fundedPercent = form.watch('fundedPercent');
+                    const totalBudget = field.value || 0;
+                    const phixCoFunding = fundedPercent < 100 
+                      ? (totalBudget / 1.25) * ((100 - fundedPercent) / 100)
+                      : 0;
+
                     return (
                       <FormItem>
                         <FormLabel>Total Budget (€)</FormLabel>
@@ -491,6 +541,11 @@ const ProposalForm = () => {
                             placeholder="0"
                           />
                         </FormControl>
+                        {phixCoFunding > 0 && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            PHIX Co-Funding Required: €{phixCoFunding.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </p>
+                        )}
                         <FormMessage />
                       </FormItem>
                     );
@@ -845,7 +900,89 @@ const ProposalForm = () => {
                 </div>
               )}
 
-              {processes.length === 0 && publications.length === 0 && infrastructures.length === 0 && projects.length === 0 && (
+              {organizations.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Organizations</Label>
+                  <div className="space-y-2">
+                    {organizations.map((org) => (
+                      <div key={org.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`org-${org.id}`}
+                          checked={selectedOrganizations.includes(org.id)}
+                          onCheckedChange={() => toggleOrganization(org.id)}
+                        />
+                        <label htmlFor={`org-${org.id}`} className="text-sm cursor-pointer flex-1">
+                          {org.legalName || org.shortName}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {personnelInvolvement.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Personnel Involvement</Label>
+                  <div className="space-y-2">
+                    {personnelInvolvement.map((pi) => (
+                      <div key={pi.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`pi-${pi.id}`}
+                          checked={selectedPersonnelInvolvement.includes(pi.id)}
+                          onCheckedChange={() => togglePersonnelInvolvement(pi.id)}
+                        />
+                        <label htmlFor={`pi-${pi.id}`} className="text-sm cursor-pointer flex-1">
+                          {pi.mainContact.firstName} {pi.mainContact.lastName} - {pi.mainContact.position}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {exploitations.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Exploitation</Label>
+                  <div className="space-y-2">
+                    {exploitations.map((exp) => (
+                      <div key={exp.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`exp-${exp.id}`}
+                          checked={selectedExploitation.includes(exp.id)}
+                          onCheckedChange={() => toggleExploitation(exp.id)}
+                        />
+                        <label htmlFor={`exp-${exp.id}`} className="text-sm cursor-pointer flex-1">
+                          {exp.name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {companyDescriptions.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Company Description</Label>
+                  <div className="space-y-2">
+                    {companyDescriptions.map((cd) => (
+                      <div key={cd.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`cd-${cd.id}`}
+                          checked={selectedCompanyDescription.includes(cd.id)}
+                          onCheckedChange={() => toggleCompanyDescription(cd.id)}
+                        />
+                        <label htmlFor={`cd-${cd.id}`} className="text-sm cursor-pointer flex-1">
+                          Company Experience Description
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {processes.length === 0 && publications.length === 0 && infrastructures.length === 0 && 
+               projects.length === 0 && organizations.length === 0 && personnelInvolvement.length === 0 && 
+               exploitations.length === 0 && companyDescriptions.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   No reusable data available. Add data in the Reusable Data section first.
                 </p>
