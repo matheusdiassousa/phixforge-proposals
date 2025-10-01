@@ -1242,37 +1242,35 @@ const ProposalForm = () => {
             </CardContent>
           </Card>
 
-          <div className="flex justify-end gap-4">
-            <Button type="button" variant="outline" onClick={() => navigate('/proposals')}>
-              Cancel
-            </Button>
-            <Button type="submit">
-              <Save className="h-4 w-4" />
-              {id ? 'Update' : 'Create'} Proposal
-            </Button>
-          </div>
         </form>
       </Form>
 
-      {/* Floating Save Button - Only shown when editing */}
-      {id && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <Button
-            type="button"
-            size="lg"
-            className="shadow-lg"
-            onClick={() => {
-              const formElement = document.querySelector('form');
-              if (formElement) {
-                formElement.requestSubmit();
-              }
-            }}
-          >
-            <Save className="h-5 w-5 mr-2" />
-            Update Proposal
-          </Button>
-        </div>
-      )}
+      {/* Floating Action Buttons */}
+      <div className="fixed bottom-6 right-6 z-50 flex gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="shadow-lg bg-background"
+          onClick={() => navigate('/proposals')}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="button"
+          size="lg"
+          className="shadow-lg"
+          onClick={() => {
+            const formElement = document.querySelector('form');
+            if (formElement) {
+              formElement.requestSubmit();
+            }
+          }}
+        >
+          <Save className="h-5 w-5 mr-2" />
+          {id ? 'Update' : 'Create'} Proposal
+        </Button>
+      </div>
     </div>
   );
 };
