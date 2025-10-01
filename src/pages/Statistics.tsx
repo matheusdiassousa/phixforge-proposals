@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { storage, Proposal } from '@/lib/storage';
+import { storage, Proposal, Process } from '@/lib/storage';
 import { FileText, CheckCircle, TrendingUp, DollarSign, Globe, Users, Zap, Target } from 'lucide-react';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -82,10 +82,13 @@ const Statistics = () => {
     });
 
     // Calculate top processes
+    const allProcesses = storage.get<Process>('processes');
     const processCount: { [key: string]: number } = {};
     granted.forEach(p => {
-      p.phixProcesses?.forEach(proc => {
-        processCount[proc] = (processCount[proc] || 0) + 1;
+      p.phixProcesses?.forEach(procId => {
+        const process = allProcesses.find(proc => proc.id === procId);
+        const processName = process?.name || procId;
+        processCount[processName] = (processCount[processName] || 0) + 1;
       });
     });
     const topProcesses = Object.entries(processCount)

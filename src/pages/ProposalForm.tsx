@@ -717,9 +717,24 @@ const ProposalForm = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Project Application</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} rows={4} placeholder="Describe the project application..." />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select application area" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Space">Space</SelectItem>
+                        <SelectItem value="Medical">Medical</SelectItem>
+                        <SelectItem value="Telecommunications">Telecommunications</SelectItem>
+                        <SelectItem value="Automotive">Automotive</SelectItem>
+                        <SelectItem value="Industrial">Industrial</SelectItem>
+                        <SelectItem value="Consumer Electronics">Consumer Electronics</SelectItem>
+                        <SelectItem value="Defense">Defense</SelectItem>
+                        <SelectItem value="Energy">Energy</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
