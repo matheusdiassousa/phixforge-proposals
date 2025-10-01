@@ -49,8 +49,7 @@ const Statistics = () => {
           
           // Calculate co-funding only for ongoing projects
           if (p.fundedPercent < 100) {
-            const directCosts = p.totalBudget / 1.25;
-            const phixCoFund = directCosts * ((100 - p.fundedPercent) / 100);
+            const phixCoFund = (p.phixBudget || 0) * ((100 - p.fundedPercent) / 100);
             coFunding += phixCoFund;
           }
         }
