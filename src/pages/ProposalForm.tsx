@@ -61,8 +61,16 @@ const ProposalForm = () => {
     personMonthRate: number;
     otherCosts: Array<{ description: string; value: number }>;
     travelCosts: Array<{ description: string; value: number }>;
+    tasks: Array<{
+      name: string;
+      durationMonths: number;
+      deliverable: string;
+      milestone: string;
+      risk: string;
+      mitigation: string;
+    }>;
   }>>([
-    { number: '', description: '', leadPartner: '', involvedPartners: [], phixPersonMonths: 0, personMonthRate: 0, otherCosts: [], travelCosts: [] }
+    { number: '', description: '', leadPartner: '', involvedPartners: [], phixPersonMonths: 0, personMonthRate: 0, otherCosts: [], travelCosts: [], tasks: [] }
   ]);
   const [customProgramme, setCustomProgramme] = useState('');
   const [customProgrammes, setCustomProgrammes] = useState<string[]>([]);
@@ -328,7 +336,8 @@ const ProposalForm = () => {
     phixPersonMonths: 0, 
     personMonthRate: 0,
     otherCosts: [],
-    travelCosts: []
+    travelCosts: [],
+    tasks: []
   }]);
   
   const removeWorkPackage = (index: number) => setWorkPackages(workPackages.filter((_, i) => i !== index));
@@ -372,6 +381,32 @@ const ProposalForm = () => {
   const updateWPTravelCost = (wpIndex: number, costIndex: number, field: 'description' | 'value', value: string | number) => {
     const updated = [...workPackages];
     updated[wpIndex].travelCosts[costIndex] = { ...updated[wpIndex].travelCosts[costIndex], [field]: value };
+    setWorkPackages(updated);
+  };
+
+  // Task management functions
+  const addWPTask = (wpIndex: number) => {
+    const updated = [...workPackages];
+    updated[wpIndex].tasks.push({ 
+      name: '', 
+      durationMonths: 0, 
+      deliverable: '', 
+      milestone: '', 
+      risk: '', 
+      mitigation: '' 
+    });
+    setWorkPackages(updated);
+  };
+
+  const removeWPTask = (wpIndex: number, taskIndex: number) => {
+    const updated = [...workPackages];
+    updated[wpIndex].tasks = updated[wpIndex].tasks.filter((_, i) => i !== taskIndex);
+    setWorkPackages(updated);
+  };
+
+  const updateWPTask = (wpIndex: number, taskIndex: number, field: 'name' | 'durationMonths' | 'deliverable' | 'milestone' | 'risk' | 'mitigation', value: string | number) => {
+    const updated = [...workPackages];
+    updated[wpIndex].tasks[taskIndex] = { ...updated[wpIndex].tasks[taskIndex], [field]: value };
     setWorkPackages(updated);
   };
 
@@ -1138,6 +1173,88 @@ const ProposalForm = () => {
                         <Button type="button" variant="ghost" size="icon" onClick={() => removeWPTravelCost(wpIndex, costIndex)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-sm font-semibold">Tasks</Label>
+                      <Button type="button" variant="outline" size="sm" onClick={() => addWPTask(wpIndex)}>
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Task
+                      </Button>
+                    </div>
+                    {wp.tasks.map((task, taskIndex) => (
+                      <div key={taskIndex} className="space-y-3 p-3 border rounded-md bg-muted/30">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-xs font-medium">Task {taskIndex + 1}</Label>
+                          <Button type="button" variant="ghost" size="icon" onClick={() => removeWPTask(wpIndex, taskIndex)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="col-span-2">
+                            <Label className="text-xs">Task Name</Label>
+                            <Input
+                              placeholder="Task name"
+                              value={task.name}
+                              onChange={(e) => updateWPTask(wpIndex, taskIndex, 'name', e.target.value)}
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label className="text-xs">Duration (months)</Label>
+                            <Input
+                              type="number"
+                              placeholder="Duration"
+                              value={task.durationMonths}
+                              onChange={(e) => updateWPTask(wpIndex, taskIndex, 'durationMonths', Number(e.target.value))}
+                              min="0"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label className="text-xs">Milestone</Label>
+                            <Input
+                              placeholder="Milestone"
+                              value={task.milestone}
+                              onChange={(e) => updateWPTask(wpIndex, taskIndex, 'milestone', e.target.value)}
+                            />
+                          </div>
+                          
+                          <div className="col-span-2">
+                            <Label className="text-xs">Deliverable</Label>
+                            <Input
+                              placeholder="Deliverable"
+                              value={task.deliverable}
+                              onChange={(e) => updateWPTask(wpIndex, taskIndex, 'deliverable', e.target.value)}
+                            />
+                          </div>
+                          
+                          <div className="col-span-2">
+                            <Label className="text-xs">Risk</Label>
+                            <Textarea
+                              placeholder="Risk description"
+                              value={task.risk}
+                              onChange={(e) => updateWPTask(wpIndex, taskIndex, 'risk', e.target.value)}
+                              rows={2}
+                            />
+                          </div>
+                          
+                          <div className="col-span-2">
+                            <Label className="text-xs">Mitigation</Label>
+                            <Textarea
+                              placeholder="Mitigation strategy"
+                              value={task.mitigation}
+                              onChange={(e) => updateWPTask(wpIndex, taskIndex, 'mitigation', e.target.value)}
+                              rows={2}
+                            />
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>

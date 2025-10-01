@@ -79,6 +79,14 @@ export interface Proposal {
     personMonthRate: number;
     otherCosts: Array<{ description: string; value: number }>;
     travelCosts: Array<{ description: string; value: number }>;
+    tasks: Array<{
+      name: string;
+      durationMonths: number;
+      deliverable: string;
+      milestone: string;
+      risk: string;
+      mitigation: string;
+    }>;
   }>;
 }
 
