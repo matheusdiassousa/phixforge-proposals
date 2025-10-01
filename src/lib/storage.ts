@@ -166,6 +166,13 @@ export interface Exploitation {
   id: string;
   name: string;
   description: string;
+  targetedEndUsers: string;
+  competitors: string;
+  marketOverview: string;
+  valueProposition: string;
+  commercializationMeasures: string;
+  additionalSupport: string;
+  expectedRevenues: string;
 }
 
 
