@@ -175,6 +175,18 @@ export interface Exploitation {
   expectedRevenues: string;
 }
 
+export interface CompanyDescription {
+  id: string;
+  legalName: string;
+  shortName: string;
+  description: string;
+  mission: string;
+  vision: string;
+  coreValues: string;
+  keyActivities: string;
+  yearFounded: string;
+}
+
 
 const STORAGE_KEYS = {
   proposals: 'phixforge_proposals',
@@ -187,6 +199,7 @@ const STORAGE_KEYS = {
   customProgrammes: 'phixforge_custom_programmes',
   personnelInvolvement: 'phixforge_personnel_involvement',
   exploitation: 'phixforge_exploitation',
+  companyDescription: 'phixforge_company_description',
 };
 
 export const storage = {
@@ -211,6 +224,7 @@ export const storage = {
       customProgrammes: storage.get<string>('customProgrammes'),
       personnelInvolvement: storage.get<PersonnelInvolvement>('personnelInvolvement'),
       exploitation: storage.get<Exploitation>('exploitation'),
+      companyDescription: storage.get<CompanyDescription>('companyDescription'),
     };
     return JSON.stringify(allData, null, 2);
   },
