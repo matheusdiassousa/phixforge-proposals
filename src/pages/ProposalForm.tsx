@@ -160,7 +160,14 @@ const ProposalForm = () => {
         setSelectedExploitation(proposal.exploitation || []);
         setSelectedCompanyDescription(proposal.companyDescription || []);
         if (proposal.partners?.length) setPartners(proposal.partners);
-        if (proposal.workPackages?.length) setWorkPackages(proposal.workPackages);
+        if (proposal.workPackages?.length) {
+          // Migrate old work packages to include tasks array
+          const migratedWorkPackages = proposal.workPackages.map(wp => ({
+            ...wp,
+            tasks: wp.tasks || []
+          }));
+          setWorkPackages(migratedWorkPackages);
+        }
         
         // Initialize date picker fields
         if (proposal.startDate) {
@@ -1187,7 +1194,7 @@ const ProposalForm = () => {
                         Add Task
                       </Button>
                     </div>
-                    {wp.tasks.map((task, taskIndex) => (
+                    {(wp.tasks || []).map((task, taskIndex) => (
                       <div key={taskIndex} className="space-y-3 p-3 border rounded-md bg-muted/30">
                         <div className="flex justify-between items-center">
                           <Label className="text-xs font-medium">Task {taskIndex + 1}</Label>
