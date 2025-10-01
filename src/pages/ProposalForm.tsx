@@ -1253,6 +1253,26 @@ const ProposalForm = () => {
           </div>
         </form>
       </Form>
+
+      {/* Floating Save Button - Only shown when editing */}
+      {id && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <Button
+            type="button"
+            size="lg"
+            className="shadow-lg"
+            onClick={() => {
+              const formElement = document.querySelector('form');
+              if (formElement) {
+                formElement.requestSubmit();
+              }
+            }}
+          >
+            <Save className="h-5 w-5 mr-2" />
+            Update Proposal
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
