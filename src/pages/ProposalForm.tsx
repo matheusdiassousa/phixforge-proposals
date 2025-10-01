@@ -519,11 +519,16 @@ const ProposalForm = () => {
                       const m = Number(month);
                       const y = Number(year);
                       
-                      if (d && m && y && d >= 1 && d <= 31 && m >= 1 && m <= 12 && y >= 2000) {
+                      if (d && m && y) {
                         const date = new Date(y, m - 1, d);
                         field.onChange(date.toISOString());
                       }
                     };
+
+                    const months = [
+                      'January', 'February', 'March', 'April', 'May', 'June',
+                      'July', 'August', 'September', 'October', 'November', 'December'
+                    ];
 
                     return (
                       <FormItem>
@@ -531,45 +536,66 @@ const ProposalForm = () => {
                         <div className="grid grid-cols-3 gap-2">
                           <div>
                             <Label className="text-xs text-muted-foreground">Day</Label>
-                            <Input
-                              type="number"
-                              min="1"
-                              max="31"
-                              placeholder="DD"
+                            <Select
                               value={tempDay}
-                              onChange={(e) => {
-                                setTempDay(e.target.value);
-                                updateDate(e.target.value, tempMonth, tempYear);
+                              onValueChange={(value) => {
+                                setTempDay(value);
+                                updateDate(value, tempMonth, tempYear);
                               }}
-                            />
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Day" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-[200px]">
+                                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                                  <SelectItem key={day} value={day.toString()}>
+                                    {day}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                           <div>
                             <Label className="text-xs text-muted-foreground">Month</Label>
-                            <Input
-                              type="number"
-                              min="1"
-                              max="12"
-                              placeholder="MM"
+                            <Select
                               value={tempMonth}
-                              onChange={(e) => {
-                                setTempMonth(e.target.value);
-                                updateDate(tempDay, e.target.value, tempYear);
+                              onValueChange={(value) => {
+                                setTempMonth(value);
+                                updateDate(tempDay, value, tempYear);
                               }}
-                            />
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Month" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-[200px]">
+                                {months.map((month, index) => (
+                                  <SelectItem key={index + 1} value={(index + 1).toString()}>
+                                    {month}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                           <div>
                             <Label className="text-xs text-muted-foreground">Year</Label>
-                            <Input
-                              type="number"
-                              min="2000"
-                              max="2100"
-                              placeholder="YYYY"
+                            <Select
                               value={tempYear}
-                              onChange={(e) => {
-                                setTempYear(e.target.value);
-                                updateDate(tempDay, tempMonth, e.target.value);
+                              onValueChange={(value) => {
+                                setTempYear(value);
+                                updateDate(tempDay, tempMonth, value);
                               }}
-                            />
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Year" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-[200px]">
+                                {Array.from({ length: 51 }, (_, i) => 2000 + i).map((year) => (
+                                  <SelectItem key={year} value={year.toString()}>
+                                    {year}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
                         <FormMessage />
