@@ -34,11 +34,34 @@ const Statistics = () => {
       return sum;
     }, 0);
 
+    // Calculate ongoing and completed projects based on dates
+    const today = new Date();
+    let ongoingCount = 0;
+    let completedCount = 0;
+
+    granted.forEach((p) => {
+      if (p.startDate && p.durationMonths) {
+        const startDate = new Date(p.startDate);
+        const totalMonths = p.durationMonths + (p.extensionMonths || 0);
+        const endDate = new Date(startDate);
+        endDate.setMonth(endDate.getMonth() + totalMonths);
+
+        if (p.isCompleted) {
+          completedCount++;
+        } else if (today >= startDate && today <= endDate) {
+          ongoingCount++;
+        } else if (today > endDate) {
+          // Project ended but not marked as complete - could still count as ongoing or not count at all
+          // Based on user's description, only count as complete if marked
+        }
+      }
+    });
+
     setStats({
       totalProposals: proposals.length,
       grantedProposals: granted.length,
-      ongoingProjects: projects.filter((p) => p.status === 'Ongoing').length,
-      completedProjects: projects.filter((p) => p.status === 'Completed').length,
+      ongoingProjects: ongoingCount,
+      completedProjects: completedCount,
       totalBudget,
       coFunding,
       successRate: proposals.length > 0 ? (granted.length / proposals.length) * 100 : 0,

@@ -10,6 +10,8 @@ export interface Proposal {
   isGranted: boolean;
   durationMonths?: number;
   startDate?: string;
+  extensionMonths?: number;
+  isCompleted?: boolean;
   totalBudget: number;
   phixBudget: number;
   projectApplication: string;

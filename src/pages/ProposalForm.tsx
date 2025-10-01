@@ -26,6 +26,7 @@ const proposalSchema = z.object({
   totalBudget: z.number().min(0),
   durationMonths: z.number().min(1).optional(),
   startDate: z.string().optional(),
+  extensionMonths: z.number().min(0).optional(),
   projectApplication: z.string().optional(),
   picPlatform: z.string().optional(),
   phixRole: z.string().optional(),
@@ -38,6 +39,7 @@ const ProposalForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isGranted, setIsGranted] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
   const [wavelengths, setWavelengths] = useState<string[]>(['']);
   const [selectedProcesses, setSelectedProcesses] = useState<string[]>([]);
   const [selectedPublications, setSelectedPublications] = useState<string[]>([]);
@@ -88,6 +90,7 @@ const ProposalForm = () => {
       totalBudget: 0,
       durationMonths: undefined,
       startDate: undefined,
+      extensionMonths: 0,
       projectApplication: '',
       picPlatform: '',
       phixRole: '',
@@ -118,11 +121,13 @@ const ProposalForm = () => {
           totalBudget: proposal.totalBudget,
           durationMonths: proposal.durationMonths,
           startDate: proposal.startDate,
+          extensionMonths: proposal.extensionMonths || 0,
           projectApplication: proposal.projectApplication || '',
           picPlatform: proposal.picPlatform || '',
           phixRole: proposal.phixRole || '',
         });
         setIsGranted(proposal.isGranted);
+        setIsCompleted(proposal.isCompleted || false);
         setWavelengths(proposal.wavelengths?.length ? proposal.wavelengths : ['']);
         setSelectedProcesses(proposal.phixProcesses || []);
         setSelectedPublications(proposal.publications || []);
@@ -181,8 +186,10 @@ const ProposalForm = () => {
       fundedPercent: data.fundedPercent,
       deadline: data.deadline,
       isGranted: isGranted,
+      isCompleted: isCompleted,
       durationMonths: data.durationMonths,
       startDate: data.startDate,
+      extensionMonths: data.extensionMonths,
       totalBudget: data.totalBudget,
       phixBudget: calculatePhixBudget(),
       projectApplication: data.projectApplication || '',
@@ -491,7 +498,7 @@ const ProposalForm = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="durationMonths"
@@ -503,6 +510,24 @@ const ProposalForm = () => {
                           type="number"
                           {...field}
                           onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="extensionMonths"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Extension (months)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -606,11 +631,21 @@ const ProposalForm = () => {
               </div>
 
               {id && (
-                <div className="flex items-center gap-2 p-4 bg-muted rounded-md">
-                  <Checkbox checked={isGranted} onCheckedChange={(checked) => setIsGranted(checked as boolean)} id="isGranted" />
-                  <label htmlFor="isGranted" className="text-sm font-medium cursor-pointer">
-                    Mark as Granted (after submission)
-                  </label>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 p-4 bg-muted rounded-md">
+                    <Checkbox checked={isGranted} onCheckedChange={(checked) => setIsGranted(checked as boolean)} id="isGranted" />
+                    <label htmlFor="isGranted" className="text-sm font-medium cursor-pointer">
+                      Mark as Granted (after submission)
+                    </label>
+                  </div>
+                  {isGranted && (
+                    <div className="flex items-center gap-2 p-4 bg-muted rounded-md">
+                      <Checkbox checked={isCompleted} onCheckedChange={(checked) => setIsCompleted(checked as boolean)} id="isCompleted" />
+                      <label htmlFor="isCompleted" className="text-sm font-medium cursor-pointer">
+                        Project Complete
+                      </label>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
