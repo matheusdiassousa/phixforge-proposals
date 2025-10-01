@@ -177,14 +177,7 @@ export interface Exploitation {
 
 export interface CompanyDescription {
   id: string;
-  legalName: string;
-  shortName: string;
   description: string;
-  mission: string;
-  vision: string;
-  coreValues: string;
-  keyActivities: string;
-  yearFounded: string;
 }
 
 

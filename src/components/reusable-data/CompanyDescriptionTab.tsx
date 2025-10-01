@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -15,14 +14,7 @@ export const CompanyDescriptionTab = () => {
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
-    legalName: '',
-    shortName: '',
     description: '',
-    mission: '',
-    vision: '',
-    coreValues: '',
-    keyActivities: '',
-    yearFounded: '',
   });
 
   useEffect(() => {
@@ -35,10 +27,10 @@ export const CompanyDescriptionTab = () => {
   };
 
   const handleSave = () => {
-    if (!formData.legalName.trim()) {
+    if (!formData.description.trim()) {
       toast({
         title: "Error",
-        description: "Legal name is required",
+        description: "Description is required",
         variant: "destructive",
       });
       return;
@@ -46,7 +38,7 @@ export const CompanyDescriptionTab = () => {
 
     const newDescription: CompanyDescription = {
       id: editingId || Date.now().toString(),
-      ...formData,
+      description: formData.description,
     };
 
     let updatedDescriptions;
@@ -67,14 +59,7 @@ export const CompanyDescriptionTab = () => {
 
   const handleEdit = (description: CompanyDescription) => {
     setFormData({
-      legalName: description.legalName,
-      shortName: description.shortName,
       description: description.description,
-      mission: description.mission,
-      vision: description.vision,
-      coreValues: description.coreValues,
-      keyActivities: description.keyActivities,
-      yearFounded: description.yearFounded,
     });
     setEditingId(description.id);
     setIsEditing(true);
@@ -92,14 +77,7 @@ export const CompanyDescriptionTab = () => {
 
   const resetForm = () => {
     setFormData({
-      legalName: '',
-      shortName: '',
       description: '',
-      mission: '',
-      vision: '',
-      coreValues: '',
-      keyActivities: '',
-      yearFounded: '',
     });
     setIsEditing(false);
     setEditingId(null);
@@ -107,19 +85,12 @@ export const CompanyDescriptionTab = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6">
         {descriptions.map((description) => (
           <Card key={description.id}>
             <CardHeader>
               <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle>{description.legalName}</CardTitle>
-                  {description.shortName && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {description.shortName}
-                    </p>
-                  )}
-                </div>
+                <CardTitle>Company Experience Description</CardTitle>
                 <div className="flex gap-2">
                   <Button
                     variant="ghost"
@@ -138,43 +109,10 @@ export const CompanyDescriptionTab = () => {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {description.description && (
-                <div>
-                  <p className="text-sm font-medium">Description:</p>
-                  <p className="text-sm text-muted-foreground">{description.description}</p>
-                </div>
-              )}
-              {description.mission && (
-                <div>
-                  <p className="text-sm font-medium">Mission:</p>
-                  <p className="text-sm text-muted-foreground">{description.mission}</p>
-                </div>
-              )}
-              {description.vision && (
-                <div>
-                  <p className="text-sm font-medium">Vision:</p>
-                  <p className="text-sm text-muted-foreground">{description.vision}</p>
-                </div>
-              )}
-              {description.coreValues && (
-                <div>
-                  <p className="text-sm font-medium">Core Values:</p>
-                  <p className="text-sm text-muted-foreground">{description.coreValues}</p>
-                </div>
-              )}
-              {description.keyActivities && (
-                <div>
-                  <p className="text-sm font-medium">Key Activities:</p>
-                  <p className="text-sm text-muted-foreground">{description.keyActivities}</p>
-                </div>
-              )}
-              {description.yearFounded && (
-                <div>
-                  <p className="text-sm font-medium">Year Founded:</p>
-                  <p className="text-sm text-muted-foreground">{description.yearFounded}</p>
-                </div>
-              )}
+            <CardContent>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                {description.description}
+              </p>
             </CardContent>
           </Card>
         ))}
@@ -182,98 +120,25 @@ export const CompanyDescriptionTab = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>{isEditing ? 'Edit Company Description' : 'Add Company Description'}</CardTitle>
+          <CardTitle>
+            {isEditing ? 'Edit Company Description' : 'Add Company Description'}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="legalName">Legal Name *</Label>
-              <Input
-                id="legalName"
-                value={formData.legalName}
-                onChange={(e) => setFormData({ ...formData, legalName: e.target.value })}
-                placeholder="Enter legal name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="shortName">Short Name</Label>
-              <Input
-                id="shortName"
-                value={formData.shortName}
-                onChange={(e) => setFormData({ ...formData, shortName: e.target.value })}
-                placeholder="Enter short name"
-              />
-            </div>
-          </div>
-
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Company Experience Description *</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Enter company description"
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="mission">Mission</Label>
-            <Textarea
-              id="mission"
-              value={formData.mission}
-              onChange={(e) => setFormData({ ...formData, mission: e.target.value })}
-              placeholder="Enter company mission"
-              rows={2}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="vision">Vision</Label>
-            <Textarea
-              id="vision"
-              value={formData.vision}
-              onChange={(e) => setFormData({ ...formData, vision: e.target.value })}
-              placeholder="Enter company vision"
-              rows={2}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="coreValues">Core Values</Label>
-            <Textarea
-              id="coreValues"
-              value={formData.coreValues}
-              onChange={(e) => setFormData({ ...formData, coreValues: e.target.value })}
-              placeholder="Enter core values"
-              rows={2}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="keyActivities">Key Activities</Label>
-            <Textarea
-              id="keyActivities"
-              value={formData.keyActivities}
-              onChange={(e) => setFormData({ ...formData, keyActivities: e.target.value })}
-              placeholder="Enter key activities"
-              rows={2}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="yearFounded">Year Founded</Label>
-            <Input
-              id="yearFounded"
-              value={formData.yearFounded}
-              onChange={(e) => setFormData({ ...formData, yearFounded: e.target.value })}
-              placeholder="e.g., 2020"
+              placeholder="Describe the company's experience, expertise, and background..."
+              rows={10}
             />
           </div>
 
           <div className="flex gap-2">
             <Button onClick={handleSave}>
-              {isEditing ? 'Update' : 'Add'} Company Description
+              {isEditing ? 'Update' : 'Add'} Description
             </Button>
             {isEditing && (
               <Button variant="outline" onClick={resetForm}>
