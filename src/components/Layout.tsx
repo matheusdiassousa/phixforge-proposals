@@ -56,14 +56,14 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      <aside className="w-64 border-r bg-card">
+    <div className="flex min-h-screen bg-background">
+      <aside className="w-64 border-r bg-card flex flex-col">
         <div className="p-6 border-b">
           <h1 className="text-2xl font-bold text-primary">PhixForge</h1>
           <p className="text-sm text-muted-foreground">Proposals Manager</p>
         </div>
 
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-2 flex-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname.startsWith(item.path);
@@ -85,7 +85,7 @@ const Layout = ({ children }: LayoutProps) => {
           })}
         </nav>
 
-        <div className="absolute bottom-0 w-64 p-4 border-t space-y-2">
+        <div className="p-4 border-t space-y-2">
           <Button variant="outline" className="w-full" onClick={handleExport}>
             <Download className="h-4 w-4" />
             Export Data
@@ -97,7 +97,7 @@ const Layout = ({ children }: LayoutProps) => {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto">{children}</main>
+      <main className="flex-1">{children}</main>
     </div>
   );
 };
