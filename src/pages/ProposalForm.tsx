@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,11 +12,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { storage, Proposal, Process, Publication, Infrastructure, Project, Person } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 const proposalSchema = z.object({
   acronym: z.string().min(1, 'Acronym is required'),
@@ -25,8 +30,7 @@ const proposalSchema = z.object({
   deadline: z.string().min(1, 'Deadline is required'),
   totalBudget: z.number().min(0),
   durationMonths: z.number().min(1).optional(),
-  startMonth: z.number().min(1).max(12).optional(),
-  startYear: z.number().min(2000).optional(),
+  startDate: z.string().optional(),
   projectApplication: z.string().optional(),
   picPlatform: z.string().optional(),
   phixRole: z.string().optional(),
@@ -80,8 +84,7 @@ const ProposalForm = () => {
       deadline: '',
       totalBudget: 0,
       durationMonths: undefined,
-      startMonth: undefined,
-      startYear: undefined,
+      startDate: undefined,
       projectApplication: '',
       picPlatform: '',
       phixRole: '',
@@ -111,8 +114,7 @@ const ProposalForm = () => {
           deadline: proposal.deadline,
           totalBudget: proposal.totalBudget,
           durationMonths: proposal.durationMonths,
-          startMonth: proposal.startMonth,
-          startYear: proposal.startYear,
+          startDate: proposal.startDate,
           projectApplication: proposal.projectApplication || '',
           picPlatform: proposal.picPlatform || '',
           phixRole: proposal.phixRole || '',
@@ -164,8 +166,7 @@ const ProposalForm = () => {
       deadline: data.deadline,
       isGranted: isGranted,
       durationMonths: data.durationMonths,
-      startMonth: data.startMonth,
-      startYear: data.startYear,
+      startDate: data.startDate,
       totalBudget: data.totalBudget,
       phixBudget: calculatePhixBudget(),
       projectApplication: data.projectApplication || '',
@@ -465,7 +466,7 @@ const ProposalForm = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="durationMonths"
@@ -486,39 +487,39 @@ const ProposalForm = () => {
 
                 <FormField
                   control={form.control}
-                  name="startMonth"
+                  name="startDate"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start Month</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="1"
-                          max="12"
-                          placeholder="1-12"
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="startYear"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start Year</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="2024"
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                        />
-                      </FormControl>
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Start Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(new Date(field.value), "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? new Date(field.value) : undefined}
+                            onSelect={(date) => field.onChange(date?.toISOString())}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}

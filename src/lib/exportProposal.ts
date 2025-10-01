@@ -89,7 +89,7 @@ export const exportProposalToDocx = async (proposal: Proposal) => {
         }),
 
         // Grant Information (if granted)
-        ...(proposal.isGranted && proposal.durationMonths && proposal.startMonth && proposal.startYear ? [
+        ...(proposal.isGranted && proposal.durationMonths && proposal.startDate ? [
           new Paragraph({
             text: 'Grant Details',
             heading: HeadingLevel.HEADING_2,
@@ -105,7 +105,7 @@ export const exportProposalToDocx = async (proposal: Proposal) => {
           new Paragraph({
             children: [
               new TextRun({ text: 'Start Date: ', bold: true }),
-              new TextRun(`${proposal.startMonth}/${proposal.startYear}`)
+              new TextRun(new Date(proposal.startDate).toLocaleDateString())
             ],
             spacing: { after: 100 }
           })

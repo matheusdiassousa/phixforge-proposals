@@ -42,9 +42,9 @@ const Proposals = () => {
     setProposals(data);
   };
 
-  const calculateEndDate = (startMonth: number, startYear: number, durationMonths: number) => {
-    const startDate = new Date(startYear, startMonth - 1);
-    const endDate = new Date(startDate);
+  const calculateEndDate = (startDate: string, durationMonths: number) => {
+    const start = new Date(startDate);
+    const endDate = new Date(start);
     endDate.setMonth(endDate.getMonth() + durationMonths);
     return endDate;
   };
@@ -130,9 +130,9 @@ const Proposals = () => {
                     €{proposal.totalBudget.toLocaleString()}
                   </span>
                 </div>
-                {proposal.isGranted && proposal.durationMonths && proposal.startMonth && proposal.startYear && (
+                {proposal.isGranted && proposal.durationMonths && proposal.startDate && (
                   <div className="text-sm text-muted-foreground">
-                    Duration: {proposal.durationMonths} months ({proposal.startMonth}/{proposal.startYear} - {calculateEndDate(proposal.startMonth, proposal.startYear, proposal.durationMonths).toLocaleDateString()})
+                    Duration: {proposal.durationMonths} months ({new Date(proposal.startDate).toLocaleDateString()} - {calculateEndDate(proposal.startDate, proposal.durationMonths).toLocaleDateString()})
                   </div>
                 )}
               </div>

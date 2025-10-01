@@ -22,20 +22,20 @@ const Projects = () => {
     setGrantedProjects(granted);
   };
 
-  const calculateTimeRemaining = (startMonth: number, startYear: number, durationMonths: number) => {
-    const startDate = new Date(startYear, startMonth - 1);
-    const endDate = new Date(startDate);
+  const calculateTimeRemaining = (startDate: string, durationMonths: number) => {
+    const start = new Date(startDate);
+    const endDate = new Date(start);
     endDate.setMonth(endDate.getMonth() + durationMonths);
     
     const now = new Date();
-    const totalMs = endDate.getTime() - startDate.getTime();
-    const elapsedMs = now.getTime() - startDate.getTime();
+    const totalMs = endDate.getTime() - start.getTime();
+    const elapsedMs = now.getTime() - start.getTime();
     const remainingMs = endDate.getTime() - now.getTime();
     
     const progress = Math.min(Math.max((elapsedMs / totalMs) * 100, 0), 100);
     const monthsRemaining = Math.ceil(remainingMs / (1000 * 60 * 60 * 24 * 30));
     
-    return { progress, monthsRemaining, endDate };
+    return { progress, monthsRemaining, endDate, startDate: start };
   };
 
   const filteredProjects = grantedProjects.filter(
@@ -96,8 +96,8 @@ const Projects = () => {
                 <p className="text-sm text-muted-foreground">Active Projects</p>
                 <p className="text-2xl font-bold">
                   {filteredProjects.filter(p => {
-                    if (!p.startMonth || !p.startYear || !p.durationMonths) return false;
-                    const { monthsRemaining } = calculateTimeRemaining(p.startMonth, p.startYear, p.durationMonths);
+                    if (!p.startDate || !p.durationMonths) return false;
+                    const { monthsRemaining } = calculateTimeRemaining(p.startDate, p.durationMonths);
                     return monthsRemaining > 0;
                   }).length}
                 </p>
@@ -125,8 +125,8 @@ const Projects = () => {
       {/* Projects List */}
       <div className="space-y-4">
         {filteredProjects.map((project) => {
-          const timeline = project.startMonth && project.startYear && project.durationMonths
-            ? calculateTimeRemaining(project.startMonth, project.startYear, project.durationMonths)
+          const timeline = project.startDate && project.durationMonths
+            ? calculateTimeRemaining(project.startDate, project.durationMonths)
             : null;
 
           return (
@@ -184,7 +184,7 @@ const Projects = () => {
                       </div>
                       <Progress value={timeline.progress} className="h-2" />
                       <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>{project.startMonth}/{project.startYear}</span>
+                        <span>{timeline.startDate.toLocaleDateString()}</span>
                         <span>{timeline.endDate.toLocaleDateString()}</span>
                       </div>
                     </div>

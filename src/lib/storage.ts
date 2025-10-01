@@ -9,8 +9,7 @@ export interface Proposal {
   deadline: string;
   isGranted: boolean;
   durationMonths?: number;
-  startMonth?: number;
-  startYear?: number;
+  startDate?: string;
   totalBudget: number;
   phixBudget: number;
   projectApplication: string;
