@@ -62,6 +62,14 @@ const ProposalForm = () => {
   const [customProgrammes, setCustomProgrammes] = useState<string[]>([]);
   const [showCustomProgramme, setShowCustomProgramme] = useState(false);
   
+  // Date picker state
+  const [tempDay, setTempDay] = useState('');
+  const [tempMonth, setTempMonth] = useState('');
+  const [tempYear, setTempYear] = useState('');
+  
+  // Budget display state
+  const [budgetDisplay, setBudgetDisplay] = useState('');
+  
   const [processes, setProcesses] = useState<Process[]>([]);
   const [publications, setPublications] = useState<Publication[]>([]);
   const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
@@ -124,6 +132,19 @@ const ProposalForm = () => {
         setPhixOrgRoles(proposal.phixOrgRoles || []);
         if (proposal.partners?.length) setPartners(proposal.partners);
         if (proposal.workPackages?.length) setWorkPackages(proposal.workPackages);
+        
+        // Initialize date picker fields
+        if (proposal.startDate) {
+          const date = new Date(proposal.startDate);
+          setTempDay(date.getDate().toString());
+          setTempMonth((date.getMonth() + 1).toString());
+          setTempYear(date.getFullYear().toString());
+        }
+        
+        // Initialize budget display
+        if (proposal.totalBudget) {
+          setBudgetDisplay(proposal.totalBudget.toLocaleString('pt-PT'));
+        }
       }
     }
   }, [id, form]);
@@ -444,20 +465,29 @@ const ProposalForm = () => {
                 <FormField
                   control={form.control}
                   name="totalBudget"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Total Budget (€)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                          min="0"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                      const rawValue = e.target.value.replace(/[^\d]/g, '');
+                      const numValue = rawValue ? Number(rawValue) : 0;
+                      field.onChange(numValue);
+                      setBudgetDisplay(numValue.toLocaleString('pt-PT'));
+                    };
+
+                    return (
+                      <FormItem>
+                        <FormLabel>Total Budget (€)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            value={budgetDisplay}
+                            onChange={handleChange}
+                            placeholder="0"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
               </div>
 
@@ -484,14 +514,13 @@ const ProposalForm = () => {
                   control={form.control}
                   name="startDate"
                   render={({ field }) => {
-                    const currentDate = field.value ? new Date(field.value) : null;
-                    const day = currentDate?.getDate() || '';
-                    const month = currentDate ? currentDate.getMonth() + 1 : '';
-                    const year = currentDate?.getFullYear() || '';
-
-                    const updateDate = (newDay: number, newMonth: number, newYear: number) => {
-                      if (newDay && newMonth && newYear) {
-                        const date = new Date(newYear, newMonth - 1, newDay);
+                    const updateDate = (day: string, month: string, year: string) => {
+                      const d = Number(day);
+                      const m = Number(month);
+                      const y = Number(year);
+                      
+                      if (d && m && y && d >= 1 && d <= 31 && m >= 1 && m <= 12 && y >= 2000) {
+                        const date = new Date(y, m - 1, d);
                         field.onChange(date.toISOString());
                       }
                     };
@@ -507,10 +536,10 @@ const ProposalForm = () => {
                               min="1"
                               max="31"
                               placeholder="DD"
-                              value={day}
+                              value={tempDay}
                               onChange={(e) => {
-                                const newDay = Number(e.target.value);
-                                if (month && year) updateDate(newDay, Number(month), Number(year));
+                                setTempDay(e.target.value);
+                                updateDate(e.target.value, tempMonth, tempYear);
                               }}
                             />
                           </div>
@@ -521,10 +550,10 @@ const ProposalForm = () => {
                               min="1"
                               max="12"
                               placeholder="MM"
-                              value={month}
+                              value={tempMonth}
                               onChange={(e) => {
-                                const newMonth = Number(e.target.value);
-                                if (day && year) updateDate(Number(day), newMonth, Number(year));
+                                setTempMonth(e.target.value);
+                                updateDate(tempDay, e.target.value, tempYear);
                               }}
                             />
                           </div>
@@ -535,10 +564,10 @@ const ProposalForm = () => {
                               min="2000"
                               max="2100"
                               placeholder="YYYY"
-                              value={year}
+                              value={tempYear}
                               onChange={(e) => {
-                                const newYear = Number(e.target.value);
-                                if (day && month) updateDate(Number(day), Number(month), newYear);
+                                setTempYear(e.target.value);
+                                updateDate(tempDay, tempMonth, e.target.value);
                               }}
                             />
                           </div>
