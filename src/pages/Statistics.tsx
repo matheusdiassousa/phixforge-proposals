@@ -25,19 +25,11 @@ const Statistics = () => {
     const granted = proposals.filter((p) => p.isGranted);
     const totalBudget = granted.reduce((sum, p) => sum + (p.phixBudget || 0), 0);
     
-    const coFunding = granted.reduce((sum, p) => {
-      if (p.fundedPercent < 100) {
-        const directCosts = p.totalBudget / 1.25;
-        const coFund = directCosts * ((100 - p.fundedPercent) / 100);
-        return sum + coFund;
-      }
-      return sum;
-    }, 0);
-
     // Calculate ongoing and completed projects based on dates
     const today = new Date();
     let ongoingCount = 0;
     let completedCount = 0;
+    let coFunding = 0;
 
     granted.forEach((p) => {
       // Count as completed if explicitly marked as completed
@@ -54,6 +46,13 @@ const Statistics = () => {
         // Only count as ongoing if project has started (today > startDate) and is within project timeline
         if (today > startDate && today <= endDate) {
           ongoingCount++;
+          
+          // Calculate co-funding only for ongoing projects
+          if (p.fundedPercent < 100) {
+            const directCosts = p.totalBudget / 1.25;
+            const phixCoFund = directCosts * ((100 - p.fundedPercent) / 100);
+            coFunding += phixCoFund;
+          }
         }
       }
     });
