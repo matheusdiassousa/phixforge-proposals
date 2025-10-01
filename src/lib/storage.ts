@@ -162,6 +162,12 @@ export interface PersonnelInvolvement {
   }>;
 }
 
+export interface Exploitation {
+  id: string;
+  name: string;
+  description: string;
+}
+
 
 const STORAGE_KEYS = {
   proposals: 'phixforge_proposals',
@@ -173,6 +179,7 @@ const STORAGE_KEYS = {
   organizations: 'phixforge_organizations',
   customProgrammes: 'phixforge_custom_programmes',
   personnelInvolvement: 'phixforge_personnel_involvement',
+  exploitation: 'phixforge_exploitation',
 };
 
 export const storage = {
@@ -196,6 +203,7 @@ export const storage = {
       organizations: storage.get<Organization>('organizations'),
       customProgrammes: storage.get<string>('customProgrammes'),
       personnelInvolvement: storage.get<PersonnelInvolvement>('personnelInvolvement'),
+      exploitation: storage.get<Exploitation>('exploitation'),
     };
     return JSON.stringify(allData, null, 2);
   },
