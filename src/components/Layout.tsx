@@ -61,7 +61,7 @@ const Layout = ({ children }: LayoutProps) => {
       <aside className="w-64 border-r bg-card flex flex-col">
         <div className="p-6 border-b">
           <div className="flex items-center gap-3">
-            <img src={phixLogo} alt="PHIX Logo" className="h-8 w-8" />
+            <img src={phixLogo} alt="PHIX Logo" className="h-10 w-auto object-contain" />
             <div>
               <h1 className="text-2xl font-bold text-primary">PhixForge</h1>
               <p className="text-sm text-muted-foreground">Proposals Manager</p>
