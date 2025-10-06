@@ -5,6 +5,7 @@ import { FileText, FolderOpen, Database, BarChart3, Download, Upload } from 'luc
 import { Button } from '@/components/ui/button';
 import { storage } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
+import phixLogo from '@/assets/phix-logo.png';
 
 interface LayoutProps {
   children: ReactNode;
@@ -59,8 +60,13 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="flex min-h-screen bg-background">
       <aside className="w-64 border-r bg-card flex flex-col">
         <div className="p-6 border-b">
-          <h1 className="text-2xl font-bold text-primary">PhixForge</h1>
-          <p className="text-sm text-muted-foreground">Proposals Manager</p>
+          <div className="flex items-center gap-3">
+            <img src={phixLogo} alt="PHIX Logo" className="h-8 w-8" />
+            <div>
+              <h1 className="text-2xl font-bold text-primary">PhixForge</h1>
+              <p className="text-sm text-muted-foreground">Proposals Manager</p>
+            </div>
+          </div>
         </div>
 
         <nav className="p-4 space-y-2 flex-1">
